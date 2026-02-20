@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %} Contacto - E'zone {% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Información de Contacto</h2>
+    
+    <div class="contact-info">
+        <div class="contact-item">
+            <div class="contact-icon">📱</div>
+            <div><strong>Teléfono:</strong> +593 983 461 462</div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-icon">📧</div>
+            <div><strong>Email:</strong> ezone@contacto.ec</div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-icon">📍</div>
+            <div><strong>Dirección:</strong> Baños de Agua Santa, Ecuador</div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-icon">🕒</div>
+            <div><strong>Horario:</strong> Lunes a Viernes, 8:00 - 17:00</div>
+        </div>
+    </div>
+    
+    <h3>¿En qué podemos ayudarte?</h3>
+    <ul>
+        <li>Solicitar cotización sin compromiso</li>
+        <li>Consultar disponibilidad de productos</li>
+        <li>Programar instalación o mantenimiento</li>
+        <li>Soporte técnico para equipos instalados</li>
+    </ul>
+    
+    <p style="background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin-top: 20px;">
+        <strong>💡 Tip:</strong> ¡Visítanos en Baños de Agua Santa para una 
+        demostración gratuita de nuestros sistemas!
+    </p>
+    
+    <a href="{{ url_for('inicio') }}" class="btn">Volver al Inicio</a>
+</div>
+{% endblock %}

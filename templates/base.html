@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} E'zone - Seguridad Electrónica {% endblock %}</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ E'zone</h1>
+        <p>Seguridad Electrónica • Domótica • Instalaciones Eléctricas</p>
+    </div>
+    
+    <div class="nav">
+        <a href="{{ url_for('inicio') }}">Inicio</a>
+        <a href="{{ url_for('lista_productos') }}">Productos</a>
+        <a href="{{ url_for('servicios') }}">Servicios</a>
+        <a href="{{ url_for('contacto') }}">Contacto</a>
+    </div>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <div class="footer">
+        <p>Sistema de Gestión v1.0 • © 2026 E'zone • Baños de Agua Santa, Ecuador</p>
+    </div>
+
+</body>
+</html>

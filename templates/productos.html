@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %} Productos - E'zone {% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Catálogo de Productos</h2>
+    
+    <ul class="product-list">
+        <li class="product-item">📹 <a href="/producto/camara-ip-hd">Cámara IP HD</a> - Vigilancia 1080p</li>
+        <li class="product-item">🚨 <a href="/producto/alarma-inteligente">Alarma Inteligente</a> - Sistema completo</li>
+        <li class="product-item">🚪 <a href="/producto/control-acceso">Control de Acceso</a> - Biométrico</li>
+        <li class="product-item">📱 <a href="/producto/smart-home-kit">Smart Home Kit</a> - Automatización</li>
+        <li class="product-item">💡 <a href="/producto/sensor-movimiento">Sensor Movimiento</a> - Detección</li>
+        <li class="product-item">🔌 <a href="/producto/tomacorriente-inteligente">Toma Inteligente</a> - Control remoto</li>
+        <li class="product-item">🔔 <a href="/producto/timbre-video">Video Portero</a> - Identificación</li>
+        <li class="product-item">🔋 <a href="/producto/bateria-respaldo">Batería Respaldo</a> - UPS 1500VA</li>
+    </ul>
+    
+    <p><strong>Nota:</strong> Todos los productos incluyen garantía y soporte técnico local.</p>
+    
+    <a href="{{ url_for('inicio') }}" class="btn">Volver al Inicio</a>
+</div>
+{% endblock %}

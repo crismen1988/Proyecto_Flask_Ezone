@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %} Servicios - E'zone {% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Soluciones Integrales en Baños de Agua Santa</h2>
+    
+    <div class="service">
+        <h3>📹 Instalación de Cámaras de Seguridad</h3>
+        <p>Sistemas de videovigilancia IP y analógicos para tu hogar o negocio.</p>
+    </div>
+    
+    <div class="service">
+        <h3>🏠 Domótica Residencial</h3>
+        <p>Automatización de luces, cortinas y dispositivos desde tu smartphone.</p>
+    </div>
+    
+    <div class="service">
+        <h3>⚡ Instalaciones Eléctricas</h3>
+        <p>Proyectos eléctricos residenciales e industriales con estándares de seguridad.</p>
+    </div>
+    
+    <div class="service">
+        <h3>🔐 Control de Acceso</h3>
+        <p>Sistemas de seguridad con huella digital, tarjetas o códigos para tu propiedad.</p>
+    </div>
+    
+    <p><strong>Todos nuestros servicios incluyen:</strong> visita técnica gratuita, 
+    garantía de 12 meses y soporte técnico local.</p>
+    
+    <a href="{{ url_for('contacto') }}" class="btn">Solicitar Cotización</a>
+    <a href="{{ url_for('inicio') }}" class="btn">Volver al Inicio</a>
+</div>
+{% endblock %}

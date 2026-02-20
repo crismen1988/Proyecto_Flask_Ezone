@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %} {{ nombre_limpio }} - E'zone {% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Detalles de: {{ nombre_limpio }}</h2>
+    
+    <div class="product-info" style="background-color: #f8f9fa; padding: 20px; border-left: 4px solid #27ae60; margin: 20px 0;">
+        <p><strong>Código de referencia:</strong> {{ codigo }}</p>
+        <p><strong>Estado en bodega:</strong> <span style="color: #27ae60; font-weight: bold;">✅ Disponible</span></p>
+        <p><strong>Ubicación:</strong> Baños de Agua Santa, Ecuador</p>
+        <p><strong>Garantía:</strong> 1 año por defectos de fábrica</p>
+    </div>
+    
+    <p>Este producto cuenta con soporte técnico especializado de E'zone. Si necesitas instalación, puedes solicitarla en nuestra sección de contacto.</p>
+    
+    <div style="margin-top: 30px;">
+        <a href="{{ url_for('lista_productos') }}" class="btn">Volver al Catálogo</a>
+        <a href="{{ url_for('contacto') }}" class="btn" style="background-color: #3498db;">Solicitar Cotización</a>
+    </div>
+</div>
+{% endblock %}
