@@ -1,0 +1,18 @@
+.ezone-header {
+    background: linear-gradient(135deg, #0f2f5f 0%, #1f4f96 100%);
+    color: #fff;
+    padding: 2rem 0;
+}
+
+.card-product {
+    transition: transform 0.2s ease;
+}
+
+.card-product:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.badge-categoria {
+    font-size: 0.8rem;
+}
