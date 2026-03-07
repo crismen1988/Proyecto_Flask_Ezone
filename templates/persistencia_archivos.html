@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="mb-4">
+    <h2 class="h3">Exportaciones Automaticas (TXT, JSON, CSV)</h2>
+    <p class="text-muted">Se sincronizan al agregar, editar o eliminar productos y clientes.</p>
+</section>
+
+<section class="mb-3">
+    <h3 class="h5">Productos</h3>
+</section>
+<section class="row g-3">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><strong>TXT - Productos</strong></div>
+            <div class="card-body">
+                {% if contenido_productos_txt %}
+                <pre class="mb-0 small">{{ contenido_productos_txt }}</pre>
+                {% else %}
+                <p class="text-muted mb-0">Sin registros TXT.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><strong>JSON - Productos</strong></div>
+            <div class="card-body">
+                {% if contenido_productos_json %}
+                <pre class="mb-0 small">{{ contenido_productos_json }}</pre>
+                {% else %}
+                <p class="text-muted mb-0">Sin registros JSON.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><strong>CSV - Productos</strong></div>
+            <div class="card-body">
+                {% if contenido_productos_csv %}
+                <pre class="mb-0 small">{{ contenido_productos_csv }}</pre>
+                {% else %}
+                <p class="text-muted mb-0">Sin registros CSV.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mt-4 mb-3">
+    <h3 class="h5">Clientes</h3>
+</section>
+<section class="row g-3">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><strong>TXT - Clientes</strong></div>
+            <div class="card-body">
+                {% if contenido_clientes_txt %}
+                <pre class="mb-0 small">{{ contenido_clientes_txt }}</pre>
+                {% else %}
+                <p class="text-muted mb-0">Sin registros TXT.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><strong>JSON - Clientes</strong></div>
+            <div class="card-body">
+                {% if contenido_clientes_json %}
+                <pre class="mb-0 small">{{ contenido_clientes_json }}</pre>
+                {% else %}
+                <p class="text-muted mb-0">Sin registros JSON.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><strong>CSV - Clientes</strong></div>
+            <div class="card-body">
+                {% if contenido_clientes_csv %}
+                <pre class="mb-0 small">{{ contenido_clientes_csv }}</pre>
+                {% else %}
+                <p class="text-muted mb-0">Sin registros CSV.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

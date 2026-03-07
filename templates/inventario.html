@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <!-- Estadísticas del Inventario -->
+    <div class="col-12 mb-4">
+        <h2><i class="bi bi-graph-up"></i> Estadísticas del Inventario EZONE</h2>
+    </div>
+    
+    {% if estadisticas %}
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Productos</h5>
+                <h2>{{ estadisticas.total_productos }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Valor Total</h5>
+                <h2>${{ "%.2f"|format(estadisticas.total_valor) }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Categorías</h5>
+                <h2>{{ estadisticas.categorias_unicas }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">Bajo Stock</h5>
+                <h2>{{ estadisticas.productos_bajo_stock }}</h2>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Lista de Productos -->
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-box-seam"></i> Inventario de Productos</h2>
+        <a href="{{ url_for('agregar') }}" class="btn btn-primary mb-3">
+            <i class="bi bi-plus-lg"></i> Nuevo Producto
+        </a>
+        <a href="{{ url_for('buscar') }}" class="btn btn-outline-primary mb-3 ms-2">
+            <i class="bi bi-search"></i> Buscar Productos
+        </a>
+        <a href="{{ url_for('persistencia_archivos') }}" class="btn btn-outline-secondary mb-3 ms-2">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Ver Exportaciones TXT/JSON/CSV
+        </a>
+        
+        {% if productos %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Proveedor</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <td>{{ producto.id }}</td>
+                        <td><strong>{{ producto.nombre }}</strong></td>
+                        <td>
+                            <span class="badge bg-secondary badge-categoria">
+                                {{ producto.categoria }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if producto.cantidad < 5 %}
+                                <span class="text-danger fw-bold">{{ producto.cantidad }}</span>
+                                <i class="bi bi-exclamation-triangle text-warning"></i>
+                            {% else %}
+                                {{ producto.cantidad }}
+                            {% endif %}
+                        </td>
+                        <td>${{ "%.2f"|format(producto.precio) }}</td>
+                        <td>{{ producto.proveedor or 'N/A' }}</td>
+                        <td>
+                            <a href="{{ url_for('editar', id=producto.id) }}" 
+                               class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('eliminar', id=producto.id) }}" 
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('¿Está seguro de eliminar este producto?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No hay productos en el inventario. 
+            <a href="{{ url_for('agregar') }}">Agrega el primero</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

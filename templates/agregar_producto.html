@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4><i class="bi bi-plus-circle"></i> Agregar Nuevo Producto - EZONE</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- 
+                    {{ form.hidden_tag() }} incluye el token CSRF automáticamente
+                    Esto protege contra ataques Cross-Site Request Forgery
+                    -->
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.nombre.label(class="form-label") }}
+                        {{ form.nombre(class="form-control", placeholder="Ej: Cámara IP Hikvision DS-2CD2143") }}
+                        {% for error in form.nombre.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.categoria.label(class="form-label") }}
+                        {{ form.categoria(class="form-select") }}
+                        {% for error in form.categoria.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.cantidad.label(class="form-label") }}
+                            {{ form.cantidad(class="form-control", placeholder="0") }}
+                            {% for error in form.cantidad.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.precio.label(class="form-label") }}
+                            {{ form.precio(class="form-control", placeholder="0.00") }}
+                            {% for error in form.precio.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.proveedor.label(class="form-label") }}
+                        {{ form.proveedor(class="form-control", placeholder="Nombre del proveedor") }}
+                        {% for error in form.proveedor.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.enviar(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Inventario
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

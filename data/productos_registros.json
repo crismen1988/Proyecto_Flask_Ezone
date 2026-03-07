@@ -1,0 +1,26 @@
+[
+  {
+    "id": 3,
+    "nombre": "EZVIZ H90",
+    "categoria": "Cámaras IP",
+    "cantidad": 15,
+    "precio": 85.99,
+    "proveedor": "TechResources"
+  },
+  {
+    "id": 4,
+    "nombre": "Cerca Eléctrica Hagroy",
+    "categoria": "Seguridad Electrónica",
+    "cantidad": 10,
+    "precio": 105.65,
+    "proveedor": "System Seguridad"
+  },
+  {
+    "id": 5,
+    "nombre": "Easy Link Wifi Kit Hikvision",
+    "categoria": "Cámaras IP",
+    "cantidad": 5,
+    "precio": 125.0,
+    "proveedor": "System Seguridad"
+  }
+]

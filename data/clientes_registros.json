@@ -1,0 +1,23 @@
+[
+  {
+    "ruc": "1803206497001",
+    "nombre": "Cristina Moreta",
+    "telefono": "0960182785",
+    "email": "crismoreta79@gmail.com",
+    "direccion": "Baños de Agua Santa"
+  },
+  {
+    "ruc": "0604100057001",
+    "nombre": "Cristian Meneses",
+    "telefono": "0983451361",
+    "email": "25crismen@gmail.com",
+    "direccion": "Baños de Agua Santa"
+  },
+  {
+    "ruc": "0602063802001",
+    "nombre": "Patricia Meneses",
+    "telefono": "032493175",
+    "email": "pat_mes@gmail.com",
+    "direccion": "Rio Verde - Baños de Agua Santa"
+  }
+]
