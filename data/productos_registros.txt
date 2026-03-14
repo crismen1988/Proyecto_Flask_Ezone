@@ -1,3 +1,4 @@
-3|EZVIZ H90|Cámaras IP|15|85.99|TechResources
-4|Cerca Eléctrica Hagroy|Seguridad Electrónica|10|105.65|System Seguridad
-5|Easy Link Wifi Kit Hikvision|Cámaras IP|5|125.0|System Seguridad
+1|Kit cámara IP 4MP|Cámaras IP|12|129.99|Hikvision
+2|Panel de alarma inalámbrico|Alarmas|8|199.5|DSC
+3|Control de acceso biométrico|Acceso Control|5|289.0|ZKTeco
+7|EZVIZ H90|Cámaras IP|15|85.99|TechResources

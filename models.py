@@ -1,19 +1,39 @@
 """
 MODELS.PY - EZONE
-Modelos ORM y logica del inventario/clientes.
+Modelos ORM y lógica de inventario, clientes y usuarios.
+Permite trabajar con SQLite (por defecto) o con MySQL si está configurado.
 """
 
 import os
+import sys
+from typing import Optional, Tuple
 
 from sqlalchemy import Float, Integer, String, create_engine, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, sessionmaker
 
-BaseInventario = declarative_base()
-BaseClientes = declarative_base()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONEXION_DIR = os.path.join(BASE_DIR, "conexion")
+if os.path.isdir(CONEXION_DIR) and CONEXION_DIR not in sys.path:
+    # Permite importar conexion.py que vive en la carpeta solicitada.
+    sys.path.insert(0, CONEXION_DIR)
+
+try:
+    from conexion import get_mysql_engine, mysql_available
+except Exception:
+    # Si el módulo no está disponible (por ejemplo, en un entorno de evaluación sin MySQL),
+    # continuamos usando solo SQLite.
+    def mysql_available() -> bool:  # type: ignore
+        return False
+
+    def get_mysql_engine(*_args, **_kwargs):  # type: ignore
+        raise RuntimeError("Soporte MySQL no disponible")
 
 
-class Producto(BaseInventario):
+Base = declarative_base()
+
+
+class Producto(Base):
     __tablename__ = "productos"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -34,7 +54,7 @@ class Producto(BaseInventario):
         }
 
 
-class Cliente(BaseClientes):
+class Cliente(Base):
     __tablename__ = "clientes"
 
     ruc: Mapped[str] = mapped_column(String(13), primary_key=True)
@@ -53,47 +73,63 @@ class Cliente(BaseClientes):
         }
 
 
+class Usuario(Base):
+    __tablename__ = "usuarios"
+
+    id_usuario: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    mail: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    def to_dict(self):
+        return {
+            "id_usuario": self.id_usuario,
+            "nombre": self.nombre,
+            "mail": self.mail,
+            "password": self.password,
+        }
+
+
 class Inventario:
-    def __init__(self, db_name="inventario.db", clientes_db_name="clientes.db"):
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.productos_db = os.path.join(base_dir, db_name)
-        self.clientes_db = os.path.join(base_dir, clientes_db_name)
+    """
+    Capa de acceso a datos.
+    - Por defecto usa SQLite local (modo sin dependencia externa).
+    - Si hay MySQL disponible (mysql_available == True), se usa de forma transparente.
+    """
 
-        self.engine_productos = create_engine(f"sqlite:///{self.productos_db}", future=True)
-        self.engine_clientes = create_engine(f"sqlite:///{self.clientes_db}", future=True)
+    def __init__(self, db_name: str = "ezone.db", use_mysql: Optional[bool] = None):
+        self.sqlite_path = os.path.join(BASE_DIR, db_name)
+        self.sqlite_url = f"sqlite:///{self.sqlite_path}"
+        # Forzamos MySQL: si falla, levantamos excepción en vez de hacer fallback.
+        self.use_mysql = True if use_mysql is None else use_mysql
 
-        self.SessionProductos = sessionmaker(
-            bind=self.engine_productos,
+        self.engine = self._build_engine()
+        self.Session = sessionmaker(
+            bind=self.engine,
             autoflush=False,
             autocommit=False,
             expire_on_commit=False,
             future=True,
         )
-        self.SessionClientes = sessionmaker(
-            bind=self.engine_clientes,
-            autoflush=False,
-            autocommit=False,
-            expire_on_commit=False,
-            future=True,
-        )
 
-        BaseInventario.metadata.create_all(self.engine_productos)
-        BaseClientes.metadata.create_all(self.engine_clientes)
+        Base.metadata.create_all(self.engine)
         self._normalizar_ruc_clientes()
 
-    def _normalizar_ruc_clientes(self):
-        session = self.SessionClientes()
+    def _build_engine(self):
+        if not self.use_mysql:
+            raise RuntimeError("MySQL es obligatorio; inicializa Inventario con use_mysql=True.")
         try:
-            clientes = session.execute(select(Cliente)).scalars().all()
-            for c in clientes:
-                if len(c.ruc) < 13:
-                    c.ruc = ("0" * 13 + c.ruc)[-13:]
-            session.commit()
-        finally:
-            session.close()
+            engine = get_mysql_engine()
+            # Hacemos un ping rápido para confirmar que la conexión responde.
+            with engine.connect() as conn:
+                conn.execute(select(1))
+            return engine
+        except Exception as exc:
+            raise RuntimeError("No se pudo conectar a MySQL. Verifica credenciales/red.") from exc
 
+    # ----------------- PRODUCTOS ----------------- #
     def obtener_todos(self):
-        session = self.SessionProductos()
+        session = self.Session()
         try:
             return session.execute(select(Producto)).scalars().all()
         finally:
@@ -108,7 +144,7 @@ class Inventario:
         return [p for p in todos if nombre.lower() in p.nombre.lower()]
 
     def agregar_producto(self, nombre, categoria, cantidad, precio, proveedor=""):
-        session = self.SessionProductos()
+        session = self.Session()
         try:
             nuevo = Producto(
                 nombre=nombre,
@@ -125,7 +161,7 @@ class Inventario:
             session.close()
 
     def eliminar_producto(self, id_producto):
-        session = self.SessionProductos()
+        session = self.Session()
         try:
             producto = session.get(Producto, id_producto)
             if not producto:
@@ -137,7 +173,7 @@ class Inventario:
             session.close()
 
     def actualizar_producto(self, id_producto, nombre, categoria, cantidad, precio, proveedor=""):
-        session = self.SessionProductos()
+        session = self.Session()
         try:
             producto = session.get(Producto, id_producto)
             if not producto:
@@ -152,22 +188,23 @@ class Inventario:
         finally:
             session.close()
 
+    # ----------------- CLIENTES ----------------- #
     def obtener_clientes(self):
-        session = self.SessionClientes()
+        session = self.Session()
         try:
             return session.execute(select(Cliente).order_by(Cliente.ruc.desc())).scalars().all()
         finally:
             session.close()
 
     def obtener_cliente_por_id(self, id_cliente):
-        session = self.SessionClientes()
+        session = self.Session()
         try:
             return session.get(Cliente, id_cliente)
         finally:
             session.close()
 
     def agregar_cliente(self, ruc, nombre, telefono="", email="", direccion=""):
-        session = self.SessionClientes()
+        session = self.Session()
         try:
             nuevo = Cliente(
                 ruc=ruc,
@@ -186,7 +223,7 @@ class Inventario:
             session.close()
 
     def eliminar_cliente(self, id_cliente):
-        session = self.SessionClientes()
+        session = self.Session()
         try:
             cliente = session.get(Cliente, id_cliente)
             if not cliente:
@@ -197,8 +234,8 @@ class Inventario:
         finally:
             session.close()
 
-    def actualizar_cliente(self, id_cliente, nuevo_ruc, nombre, telefono="", email="", direccion=""):
-        session = self.SessionClientes()
+    def actualizar_cliente(self, id_cliente, nuevo_ruc, nombre, telefono="", email="", direccion="") -> Tuple[bool, Optional[str]]:
+        session = self.Session()
         try:
             cliente = session.get(Cliente, id_cliente)
             if not cliente:
@@ -222,6 +259,75 @@ class Inventario:
         finally:
             session.close()
 
+    def _normalizar_ruc_clientes(self):
+        session = self.Session()
+        try:
+            clientes = session.execute(select(Cliente)).scalars().all()
+            for c in clientes:
+                if len(c.ruc) < 13:
+                    c.ruc = ("0" * 13 + c.ruc)[-13:]
+            session.commit()
+        finally:
+            session.close()
+
+    # ----------------- USUARIOS ----------------- #
+    def obtener_usuarios(self):
+        session = self.Session()
+        try:
+            return session.execute(select(Usuario).order_by(Usuario.id_usuario.desc())).scalars().all()
+        finally:
+            session.close()
+
+    def agregar_usuario(self, nombre: str, mail: str, password: str):
+        session = self.Session()
+        try:
+            nuevo = Usuario(nombre=nombre, mail=mail, password=password)
+            session.add(nuevo)
+            session.commit()
+            session.refresh(nuevo)
+            return nuevo
+        except IntegrityError:
+            session.rollback()
+            return None
+        finally:
+            session.close()
+
+    def eliminar_usuario(self, id_usuario: int) -> bool:
+        session = self.Session()
+        try:
+            usuario = session.get(Usuario, id_usuario)
+            if not usuario:
+                return False
+            session.delete(usuario)
+            session.commit()
+            return True
+        finally:
+            session.close()
+
+    def actualizar_usuario(self, id_usuario: int, nombre: str, mail: str, password: str) -> Tuple[bool, Optional[str]]:
+        session = self.Session()
+        try:
+            usuario = session.get(Usuario, id_usuario)
+            if not usuario:
+                return False, "no_encontrado"
+
+            if usuario.mail != mail:
+                existente = session.execute(select(Usuario).where(Usuario.mail == mail)).scalar_one_or_none()
+                if existente:
+                    return False, "duplicado"
+
+            usuario.nombre = nombre
+            usuario.mail = mail
+            usuario.password = password
+            session.commit()
+            return True, None
+        except IntegrityError:
+            session.rollback()
+            return False, "duplicado"
+        finally:
+            session.close()
+
+    # ----------------- ESTADISTICAS ----------------- #
     def obtener_estadisticas(self):
         productos = self.obtener_todos()
         return {
@@ -229,4 +335,5 @@ class Inventario:
             "total_valor": sum(p.precio * p.cantidad for p in productos),
             "categorias_unicas": len(set(p.categoria for p in productos)),
             "productos_bajo_stock": len([p for p in productos if p.cantidad < 5]),
+            "motor": "MySQL" if self.use_mysql else "SQLite",
         }

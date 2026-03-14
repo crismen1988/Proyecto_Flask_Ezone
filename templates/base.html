@@ -34,10 +34,13 @@
                         <a class="nav-link" href="{{ url_for('clientes') }}"><i class="bi bi-people"></i> Clientes</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('usuarios') }}"><i class="bi bi-person-badge"></i> Usuarios</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('persistencia_archivos') }}"><i class="bi bi-file-earmark-spreadsheet"></i> Exportaciones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('servicios') }}"><i class="bi bi-tools"></i> Servicios</a>
+                        <a class="nav-link" href="{{ url_for('estado_bd') }}"><i class="bi bi-database-check"></i> BD</a>
                     </li>
                 </ul>
             </div>
@@ -68,8 +71,9 @@
                 <a class="text-white text-decoration-none me-2" href="{{ url_for('index') }}">Inicio</a>|
                 <a class="text-white text-decoration-none mx-2" href="{{ url_for('inventario_view') }}">Inventario</a>|
                 <a class="text-white text-decoration-none mx-2" href="{{ url_for('clientes') }}">Clientes</a>|
+                <a class="text-white text-decoration-none mx-2" href="{{ url_for('usuarios') }}">Usuarios</a>|
                 <a class="text-white text-decoration-none mx-2" href="{{ url_for('persistencia_archivos') }}">Exportaciones</a>|
-                <a class="text-white text-decoration-none ms-2" href="{{ url_for('servicios') }}">Servicios</a>
+                <a class="text-white text-decoration-none ms-2" href="{{ url_for('estado_bd') }}">BD</a>
             </p>
         </div>
     </footer>

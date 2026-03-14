@@ -160,3 +160,36 @@ class BusquedaClienteForm(FlaskForm):
     )
 
     buscar = SubmitField('Buscar')
+
+
+class UsuarioForm(FlaskForm):
+    """
+    Formulario simple para la tabla usuarios (id_usuario, nombre, mail, password).
+    """
+
+    nombre = StringField(
+        "Nombre",
+        validators=[
+            DataRequired(message="El nombre es obligatorio"),
+            Length(min=3, max=100, message="Entre 3 y 100 caracteres"),
+        ],
+    )
+
+    mail = StringField(
+        "Correo",
+        validators=[
+            DataRequired(message="El correo es obligatorio"),
+            Regexp(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", message="Correo no valido"),
+            Length(max=120, message="Maximo 120 caracteres"),
+        ],
+    )
+
+    password = StringField(
+        "Password (plaintext para demo)",
+        validators=[
+            DataRequired(message="La contraseña es obligatoria"),
+            Length(min=4, max=255, message="Entre 4 y 255 caracteres"),
+        ],
+    )
+
+    enviar = SubmitField("Guardar Usuario")

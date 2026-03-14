@@ -1,26 +1,34 @@
 [
   {
+    "id": 1,
+    "nombre": "Kit cámara IP 4MP",
+    "categoria": "Cámaras IP",
+    "cantidad": 12,
+    "precio": 129.99,
+    "proveedor": "Hikvision"
+  },
+  {
+    "id": 2,
+    "nombre": "Panel de alarma inalámbrico",
+    "categoria": "Alarmas",
+    "cantidad": 8,
+    "precio": 199.5,
+    "proveedor": "DSC"
+  },
+  {
     "id": 3,
+    "nombre": "Control de acceso biométrico",
+    "categoria": "Acceso Control",
+    "cantidad": 5,
+    "precio": 289.0,
+    "proveedor": "ZKTeco"
+  },
+  {
+    "id": 7,
     "nombre": "EZVIZ H90",
     "categoria": "Cámaras IP",
     "cantidad": 15,
     "precio": 85.99,
     "proveedor": "TechResources"
-  },
-  {
-    "id": 4,
-    "nombre": "Cerca Eléctrica Hagroy",
-    "categoria": "Seguridad Electrónica",
-    "cantidad": 10,
-    "precio": 105.65,
-    "proveedor": "System Seguridad"
-  },
-  {
-    "id": 5,
-    "nombre": "Easy Link Wifi Kit Hikvision",
-    "categoria": "Cámaras IP",
-    "cantidad": 5,
-    "precio": 125.0,
-    "proveedor": "System Seguridad"
   }
 ]

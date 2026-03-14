@@ -6,13 +6,13 @@
         <div class="col-lg-7">
             <h2 class="display-6 fw-bold mb-3">Bienvenido a EZONE</h2>
             <p class="lead mb-4">
-                Plataforma para gestion de inventario, clientes y servicios
+                Plataforma para gestion de inventario y clientes
                 de seguridad electronica e instalaciones electricas.
             </p>
             <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ url_for('inventario_view') }}" class="btn btn-primary btn-lg">Inventario</a>
                 <a href="{{ url_for('clientes') }}" class="btn btn-outline-primary btn-lg">Clientes</a>
-                <a href="{{ url_for('servicios') }}" class="btn btn-dark btn-lg">Servicios</a>
+                <a href="{{ url_for('usuarios') }}" class="btn btn-dark btn-lg">Usuarios</a>
             </div>
         </div>
         <div class="col-lg-5">
@@ -51,9 +51,9 @@
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <h4 class="h5"><i class="bi bi-tools me-2"></i>Servicios</h4>
-                    <p class="mb-3">Gestion de instalaciones y mantenimientos.</p>
-                    <a href="{{ url_for('servicios') }}" class="btn btn-sm btn-primary">Ir a servicios</a>
+                    <h4 class="h5"><i class="bi bi-person-badge me-2"></i>Usuarios</h4>
+                    <p class="mb-3">Gestion de cuentas del sistema.</p>
+                    <a href="{{ url_for('usuarios') }}" class="btn btn-sm btn-primary">Ir a usuarios</a>
                 </div>
             </div>
         </div>

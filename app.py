@@ -1,6 +1,6 @@
 """
 APP.PY - EZONE
-Aplicacion Flask para gestion de inventario, clientes y servicios.
+Aplicacion Flask para gestion de inventario y clientes.
 """
 
 import csv
@@ -14,6 +14,7 @@ from forms import (
     BusquedaForm,
     ClienteForm,
     BusquedaClienteForm,
+    UsuarioForm,
 )
 from models import Inventario
 
@@ -423,12 +424,90 @@ def editar_cliente(ruc):
     return render_template("editar_cliente.html", form=form, cliente=cliente)
 
 
-@app.route("/servicios")
-def servicios():
+@app.route("/usuarios", methods=["GET", "POST"])
+def usuarios():
     """
-    Seccion de servicios (instalacion, venta y mantenimiento).
+    CRUD básico para la tabla usuarios (MySQL/SQLite).
     """
-    return render_template("servicios.html")
+    form = UsuarioForm()
+    if form.validate_on_submit():
+        nuevo = inventario.agregar_usuario(
+            nombre=form.nombre.data,
+            mail=form.mail.data,
+            password=form.password.data,
+        )
+        if nuevo is None:
+            flash("El correo ya existe. Usa uno diferente.", "danger")
+        else:
+            flash("Usuario guardado correctamente.", "success")
+        return redirect(url_for("usuarios"))
+
+    lista_usuarios = inventario.obtener_usuarios()
+    return render_template(
+        "usuarios.html",
+        form=form,
+        usuarios=lista_usuarios,
+        motor=inventario.use_mysql,
+    )
+
+
+@app.route("/usuarios/eliminar/<int:id_usuario>", methods=["POST"])
+def eliminar_usuario(id_usuario):
+    if inventario.eliminar_usuario(id_usuario):
+        flash("Usuario eliminado.", "warning")
+    else:
+        flash("No se pudo eliminar el usuario.", "danger")
+    return redirect(url_for("usuarios"))
+
+
+@app.route("/usuarios/editar/<int:id_usuario>", methods=["GET", "POST"])
+def editar_usuario(id_usuario):
+    usuarios = inventario.obtener_usuarios()
+    usuario = next((u for u in usuarios if u.id_usuario == id_usuario), None)
+    if not usuario:
+        flash("Usuario no encontrado.", "danger")
+        return redirect(url_for("usuarios"))
+
+    form = UsuarioForm()
+
+    if request.method == "GET":
+        form.nombre.data = usuario.nombre
+        form.mail.data = usuario.mail
+        form.password.data = usuario.password
+
+    if form.validate_on_submit():
+        actualizado, motivo = inventario.actualizar_usuario(
+            id_usuario=id_usuario,
+            nombre=form.nombre.data,
+            mail=form.mail.data,
+            password=form.password.data,
+        )
+        if not actualizado:
+            if motivo == "duplicado":
+                flash("El correo ya existe.", "danger")
+            else:
+                flash("No se pudo actualizar el usuario.", "danger")
+            return render_template("editar_usuario.html", form=form, usuario=usuario)
+
+        flash("Usuario actualizado correctamente.", "info")
+        return redirect(url_for("usuarios"))
+
+    return render_template("editar_usuario.html", form=form, usuario=usuario)
+
+
+@app.route("/bd/estado")
+def estado_bd():
+    """
+    Muestra información de la conexión activa (MySQL o SQLite).
+    """
+    stats = inventario.obtener_estadisticas()
+    return render_template(
+        "estado_bd.html",
+        motor=stats.get("motor"),
+        total_productos=stats.get("total_productos"),
+        total_clientes=len(inventario.obtener_clientes()),
+        total_usuarios=len(inventario.obtener_usuarios()),
+    )
 
 
 @app.route("/persistencia/archivos", methods=["GET"])
