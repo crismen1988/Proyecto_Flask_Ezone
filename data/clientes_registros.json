@@ -19,5 +19,12 @@
     "telefono": "022222222",
     "email": "admin@torres.com",
     "direccion": "Calle 10 y Av. 5"
+  },
+  {
+    "ruc": "0602063802001",
+    "nombre": "Patricia Meneses",
+    "telefono": "032493175",
+    "email": "pat_mes@gmail.com",
+    "direccion": "Rio Verde - Baños de Agua Santa"
   }
 ]

@@ -1,7 +1,30 @@
 .ezone-header {
-    background: linear-gradient(135deg, #0f2f5f 0%, #1f4f96 100%);
-    color: #fff;
+    background: linear-gradient(135deg, #eef4ff 0%, #dbe9ff 50%, #c7defc 100%);
+    color: #0b2a5a;
     padding: 2rem 0;
+}
+
+.ezone-logo {
+    height: 170px;
+    max-width: 320px;
+    object-fit: contain;
+}
+
+@media (max-width: 768px) {
+    .ezone-logo {
+        height: 130px;
+        max-width: 240px;
+    }
+}
+
+@media (max-width: 576px) {
+    .ezone-logo {
+        height: 100px;
+        max-width: 200px;
+    }
+    .ezone-header {
+        padding: 1.5rem 0;
+    }
 }
 
 .card-product {

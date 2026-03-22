@@ -8,9 +8,10 @@ import os
 import sys
 from typing import Optional, Tuple
 
-from sqlalchemy import Float, Integer, String, create_engine, select
+from flask_login import UserMixin
+from sqlalchemy import Float, Integer, String, create_engine, select, func, ForeignKey
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column, sessionmaker
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column, sessionmaker, relationship
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONEXION_DIR = os.path.join(BASE_DIR, "conexion")
@@ -42,6 +43,7 @@ class Producto(Base):
     cantidad: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     precio: Mapped[float] = mapped_column(Float, nullable=False)
     proveedor: Mapped[str] = mapped_column(String(100), nullable=False, default="")
+    imagen: Mapped[str] = mapped_column(String(255), nullable=True)
 
     def to_dict(self):
         return {
@@ -51,6 +53,7 @@ class Producto(Base):
             "cantidad": self.cantidad,
             "precio": self.precio,
             "proveedor": self.proveedor,
+            "imagen": self.imagen,
         }
 
 
@@ -73,21 +76,41 @@ class Cliente(Base):
         }
 
 
-class Usuario(Base):
+class Usuario(Base, UserMixin):
     __tablename__ = "usuarios"
 
     id_usuario: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
-    mail: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="user")
+
+    def get_id(self):
+        return str(self.id_usuario)
+
+    def is_admin(self):
+        return self.role == "admin"
 
     def to_dict(self):
         return {
             "id_usuario": self.id_usuario,
             "nombre": self.nombre,
-            "mail": self.mail,
+            "email": self.email,
             "password": self.password,
+            "role": self.role,
         }
+
+
+class Solicitud(Base):
+    __tablename__ = "solicitudes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuarios.id_usuario"), nullable=False)
+    titulo: Mapped[str] = mapped_column(String(120), nullable=False)
+    detalle: Mapped[str] = mapped_column(String(300), nullable=False)
+    estado: Mapped[str] = mapped_column(String(20), nullable=False, default="pendiente")
+
+    usuario = relationship("Usuario")
 
 
 class Inventario:
@@ -103,6 +126,7 @@ class Inventario:
         # Forzamos MySQL: si falla, levantamos excepción en vez de hacer fallback.
         self.use_mysql = True if use_mysql is None else use_mysql
 
+        # Aqui construyo el engine segun la configuracion (MySQL obligado)
         self.engine = self._build_engine()
         self.Session = sessionmaker(
             bind=self.engine,
@@ -120,7 +144,7 @@ class Inventario:
             raise RuntimeError("MySQL es obligatorio; inicializa Inventario con use_mysql=True.")
         try:
             engine = get_mysql_engine()
-            # Hacemos un ping rápido para confirmar que la conexión responde.
+            # Aqui hago un ping rapido para asegurar que la conexion responde
             with engine.connect() as conn:
                 conn.execute(select(1))
             return engine
@@ -143,7 +167,7 @@ class Inventario:
         todos = self.obtener_todos()
         return [p for p in todos if nombre.lower() in p.nombre.lower()]
 
-    def agregar_producto(self, nombre, categoria, cantidad, precio, proveedor=""):
+    def agregar_producto(self, nombre, categoria, cantidad, precio, proveedor="", imagen=None):
         session = self.Session()
         try:
             nuevo = Producto(
@@ -152,6 +176,7 @@ class Inventario:
                 cantidad=cantidad,
                 precio=precio,
                 proveedor=proveedor or "",
+                imagen=imagen,
             )
             session.add(nuevo)
             session.commit()
@@ -172,7 +197,7 @@ class Inventario:
         finally:
             session.close()
 
-    def actualizar_producto(self, id_producto, nombre, categoria, cantidad, precio, proveedor=""):
+    def actualizar_producto(self, id_producto, nombre, categoria, cantidad, precio, proveedor="", imagen=None):
         session = self.Session()
         try:
             producto = session.get(Producto, id_producto)
@@ -183,6 +208,8 @@ class Inventario:
             producto.cantidad = cantidad
             producto.precio = precio
             producto.proveedor = proveedor or ""
+            if imagen is not None:
+                producto.imagen = imagen
             session.commit()
             return True
         finally:
@@ -278,10 +305,25 @@ class Inventario:
         finally:
             session.close()
 
-    def agregar_usuario(self, nombre: str, mail: str, password: str):
+    def contar_usuarios(self):
         session = self.Session()
         try:
-            nuevo = Usuario(nombre=nombre, mail=mail, password=password)
+            return session.execute(select(func.count(Usuario.id_usuario))).scalar()
+        finally:
+            session.close()
+
+    def obtener_usuario_por_email(self, email: str):
+        session = self.Session()
+        try:
+            return session.execute(select(Usuario).where(Usuario.email == email)).scalar_one_or_none()
+        finally:
+            session.close()
+
+    def agregar_usuario(self, nombre: str, email: str, password: str, role: str = "user"):
+        session = self.Session()
+        try:
+            # Creo un usuario nuevo con el rol indicado
+            nuevo = Usuario(nombre=nombre, email=email, password=password, role=role)
             session.add(nuevo)
             session.commit()
             session.refresh(nuevo)
@@ -304,21 +346,21 @@ class Inventario:
         finally:
             session.close()
 
-    def actualizar_usuario(self, id_usuario: int, nombre: str, mail: str, password: str) -> Tuple[bool, Optional[str]]:
+    def actualizar_usuario(self, id_usuario: int, nombre: str, email: str, role: str) -> Tuple[bool, Optional[str]]:
         session = self.Session()
         try:
             usuario = session.get(Usuario, id_usuario)
             if not usuario:
                 return False, "no_encontrado"
 
-            if usuario.mail != mail:
-                existente = session.execute(select(Usuario).where(Usuario.mail == mail)).scalar_one_or_none()
+            if usuario.email != email:
+                existente = session.execute(select(Usuario).where(Usuario.email == email)).scalar_one_or_none()
                 if existente:
                     return False, "duplicado"
 
             usuario.nombre = nombre
-            usuario.mail = mail
-            usuario.password = password
+            usuario.email = email
+            usuario.role = role
             session.commit()
             return True, None
         except IntegrityError:
@@ -327,8 +369,61 @@ class Inventario:
         finally:
             session.close()
 
+    def cambiar_password(self, id_usuario: int, password_hash: str) -> bool:
+        session = self.Session()
+        try:
+            usuario = session.get(Usuario, id_usuario)
+            if not usuario:
+                return False
+            usuario.password = password_hash
+            session.commit()
+            return True
+        finally:
+            session.close()
+
+    # ----------------- SOLICITUDES ----------------- #
+    def crear_solicitud(self, usuario_id: int, titulo: str, detalle: str):
+        session = self.Session()
+        try:
+            sol = Solicitud(usuario_id=usuario_id, titulo=titulo, detalle=detalle, estado="pendiente")
+            session.add(sol)
+            session.commit()
+            session.refresh(sol)
+            return sol
+        finally:
+            session.close()
+
+    def obtener_solicitudes_usuario(self, usuario_id: int):
+        session = self.Session()
+        try:
+            return session.execute(
+                select(Solicitud).where(Solicitud.usuario_id == usuario_id).order_by(Solicitud.id.desc())
+            ).scalars().all()
+        finally:
+            session.close()
+
+    def obtener_solicitudes(self):
+        session = self.Session()
+        try:
+            return session.execute(select(Solicitud).order_by(Solicitud.id.desc())).scalars().all()
+        finally:
+            session.close()
+
+    def actualizar_estado_solicitud(self, solicitud_id: int, nuevo_estado: str) -> bool:
+        session = self.Session()
+        try:
+            sol = session.get(Solicitud, solicitud_id)
+            if not sol:
+                return False
+            sol.estado = nuevo_estado
+            session.commit()
+            return True
+        finally:
+            session.close()
+
     # ----------------- ESTADISTICAS ----------------- #
     def obtener_estadisticas(self):
+        # Calculo estadisticas rapidas para el dashboard
         productos = self.obtener_todos()
         return {
             "total_productos": len(productos),

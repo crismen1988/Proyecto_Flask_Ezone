@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -10,9 +10,8 @@
 </head>
 <body>
     <header class="ezone-header">
-        <div class="container">
-            <h1><i class="bi bi-shield-lock"></i> EZONE</h1>
-            <p class="lead mb-0">Seguridad Electrónica e Instalaciones Eléctricas</p>
+        <div class="container d-flex justify-content-center align-items-center">
+            <img src="{{ url_for('static', filename='img/logo_ezone.png') }}" alt="EZONE" class="ezone-logo">
         </div>
     </header>
 
@@ -23,10 +22,11 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-house"></i> Inicio</a>
                     </li>
+                    {% if current_user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('inventario_view') }}"><i class="bi bi-box-seam"></i> Inventario</a>
                     </li>
@@ -34,14 +34,42 @@
                         <a class="nav-link" href="{{ url_for('clientes') }}"><i class="bi bi-people"></i> Clientes</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('solicitudes') }}"><i class="bi bi-envelope-plus"></i> Solicitudes</a>
+                    </li>
+                    {% if current_user.is_admin() %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_solicitudes') }}"><i class="bi bi-inboxes"></i> Admin Solicitudes</a>
+                    </li>
+                    {% endif %}
+                    {% if current_user.is_admin() %}
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('usuarios') }}"><i class="bi bi-person-badge"></i> Usuarios</a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('persistencia_archivos') }}"><i class="bi bi-file-earmark-spreadsheet"></i> Exportaciones</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('estado_bd') }}"><i class="bi bi-database-check"></i> BD</a>
                     </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('mi_cuenta') }}"><i class="bi bi-person-circle"></i> {{ current_user.nombre }}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}"><i class="bi bi-person-plus"></i> Registrarse</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -68,12 +96,16 @@
         <div class="container">
             <p class="mb-1">&copy; 2026 EZONE - Todos los derechos reservados</p>
             <p class="small mb-0">
+                {% if current_user.is_authenticated %}
                 <a class="text-white text-decoration-none me-2" href="{{ url_for('index') }}">Inicio</a>|
                 <a class="text-white text-decoration-none mx-2" href="{{ url_for('inventario_view') }}">Inventario</a>|
                 <a class="text-white text-decoration-none mx-2" href="{{ url_for('clientes') }}">Clientes</a>|
+                {% if current_user.is_admin() %}
                 <a class="text-white text-decoration-none mx-2" href="{{ url_for('usuarios') }}">Usuarios</a>|
+                {% endif %}
                 <a class="text-white text-decoration-none mx-2" href="{{ url_for('persistencia_archivos') }}">Exportaciones</a>|
                 <a class="text-white text-decoration-none ms-2" href="{{ url_for('estado_bd') }}">BD</a>
+                {% endif %}
             </p>
         </div>
     </footer>
@@ -81,3 +113,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

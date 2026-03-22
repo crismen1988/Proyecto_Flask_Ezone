@@ -63,6 +63,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
+                        <th>Imagen</th>
                         <th>Nombre</th>
                         <th>Categoría</th>
                         <th>Cantidad</th>
@@ -75,6 +76,17 @@
                     {% for producto in productos %}
                     <tr>
                         <td>{{ producto.id }}</td>
+                        <td>
+                            {% if producto.imagen %}
+                                {% set src = producto.imagen %}
+                                {% if not src.startswith('http') %}
+                                    {% set src = url_for('static', filename=src) %}
+                                {% endif %}
+                                <img src="{{ src }}" alt="img" class="img-thumbnail" style="max-height:70px;">
+                            {% else %}
+                                <span class="text-muted">Sin imagen</span>
+                            {% endif %}
+                        </td>
                         <td><strong>{{ producto.nombre }}</strong></td>
                         <td>
                             <span class="badge bg-secondary badge-categoria">

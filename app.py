@@ -1,4 +1,4 @@
-"""
+﻿"""
 APP.PY - EZONE
 Aplicacion Flask para gestion de inventario y clientes.
 """
@@ -6,8 +6,13 @@ Aplicacion Flask para gestion de inventario y clientes.
 import csv
 import json
 import os
+import io
+from uuid import uuid4
 
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, Response
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 from forms import (
     ProductoForm,
@@ -15,11 +20,80 @@ from forms import (
     ClienteForm,
     BusquedaClienteForm,
     UsuarioForm,
+    LoginForm,
+    ProfileForm,
+    PasswordChangeForm,
+    SolicitudForm,
 )
-from models import Inventario
+from models import Inventario, Usuario, Solicitud
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "ezone_clave_secreta_seguridad_2024"
+app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+# Inicializar Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirigir a login si no es autenticado
+
+@login_manager.user_loader
+def load_user(user_id):
+    # Abrir una sesion nueva para recuperar el usuario segun su id
+    with inventario.Session() as session:
+        return session.get(Usuario, int(user_id))
+
+# Rutas de autenticación
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    # No mostrar registro si ya estoy autenticado
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = UsuarioForm()
+    if form.validate_on_submit():
+        # Si soy el primer usuario, me convierto en admin
+        user_count = inventario.contar_usuarios()
+        role = "admin" if user_count == 0 else "user"
+        
+        hashed_password = generate_password_hash(form.password.data)
+        nuevo = inventario.agregar_usuario(
+            nombre=form.nombre.data,
+            email=form.email.data,
+            password=hashed_password,
+            role=role
+        )
+        if nuevo is None:
+            flash("El correo ya existe. Usa uno diferente.", "danger")
+        else:
+            flash(f"Usuario registrado correctamente como {role}. Ahora puedes iniciar sesión.", "success")
+            return redirect(url_for('login'))
+    return render_template('register.html', form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Si ya inicié sesión, vuelvo al inicio
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = inventario.obtener_usuario_por_email(form.email.data)
+        if user is None:
+            flash('Correo o contraseña incorrectos.', 'danger')
+        elif check_password_hash(user.password, form.password.data):
+            login_user(user)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        else:
+            flash('Correo o contraseña incorrectos.', 'danger')
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    # Cierro la sesión actual
+    logout_user()
+    flash('Has cerrado sesión.', 'info')
+    return redirect(url_for('index'))
 
 inventario = Inventario()
 
@@ -43,6 +117,7 @@ def _producto_a_dict(producto):
         "cantidad": producto.cantidad,
         "precio": producto.precio,
         "proveedor": producto.proveedor or "",
+        "imagen": producto.imagen or "",
     }
 
 
@@ -62,7 +137,7 @@ def guardar_productos_en_txt(registros_producto):
             file.write(
                 f"{registro_producto['id']}|{registro_producto['nombre']}|"
                 f"{registro_producto['categoria']}|{registro_producto['cantidad']}|"
-                f"{registro_producto['precio']}|{registro_producto['proveedor']}\n"
+                f"{registro_producto['precio']}|{registro_producto['proveedor']}|{registro_producto.get('imagen','')}\n"
             )
 
 
@@ -76,8 +151,8 @@ def leer_productos_txt():
             contenido = linea.strip()
             if not contenido:
                 continue
-            partes = contenido.split("|", maxsplit=5)
-            if len(partes) == 6:
+            partes = contenido.split("|", maxsplit=6)
+            if len(partes) >= 6:
                 registros.append(
                     {
                         "id": partes[0],
@@ -86,6 +161,7 @@ def leer_productos_txt():
                         "cantidad": partes[3],
                         "precio": partes[4],
                         "proveedor": partes[5],
+                        "imagen": partes[6] if len(partes) > 6 else "",
                     }
                 )
     return registros
@@ -111,7 +187,7 @@ def guardar_productos_en_csv(registros_producto):
     with open(PRODUCTOS_CSV_FILE, "w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(
             file,
-            fieldnames=["id", "nombre", "categoria", "cantidad", "precio", "proveedor"],
+            fieldnames=["id", "nombre", "categoria", "cantidad", "precio", "proveedor", "imagen"],
         )
         writer.writeheader()
         writer.writerows(registros_producto)
@@ -215,6 +291,7 @@ def leer_archivo_como_texto(path_archivo):
 
 
 @app.route("/")
+@login_required
 def index():
     """
     Pagina principal con accesos a secciones.
@@ -229,6 +306,7 @@ def index():
 
 
 @app.route("/inventario")
+@login_required
 def inventario_view():
     productos = inventario.obtener_todos()
     estadisticas = inventario.obtener_estadisticas()
@@ -241,16 +319,30 @@ def inventario_view():
 
 
 @app.route("/agregar", methods=["GET", "POST"])
+@login_required
 def agregar():
     form = ProductoForm()
 
     if form.validate_on_submit():
+        imagen_valor = None
+        # Primero intento guardar una imagen subida; si no, tomo la URL opcional
+        if form.imagen_archivo.data and form.imagen_archivo.data.filename:
+            filename = secure_filename(form.imagen_archivo.data.filename)
+            if filename:
+                nombre_unico = f"{uuid4().hex}_{filename}"
+                ruta_destino = os.path.join(app.config["UPLOAD_FOLDER"], nombre_unico)
+                form.imagen_archivo.data.save(ruta_destino)
+                imagen_valor = f"uploads/{nombre_unico}"
+        elif form.imagen_url.data:
+            imagen_valor = form.imagen_url.data.strip()
+
         inventario.agregar_producto(
             nombre=form.nombre.data,
             categoria=form.categoria.data,
             cantidad=form.cantidad.data,
             precio=form.precio.data,
             proveedor=form.proveedor.data,
+            imagen=imagen_valor,
         )
         sincronizar_archivos_desde_inventario()
         flash("Producto agregado y archivos TXT/JSON/CSV sincronizados.", "success")
@@ -260,6 +352,7 @@ def agregar():
 
 
 @app.route("/editar/<int:id>", methods=["GET", "POST"])
+@login_required
 def editar(id):
     form = ProductoForm()
 
@@ -273,11 +366,28 @@ def editar(id):
             form.cantidad.data = producto.cantidad
             form.precio.data = producto.precio
             form.proveedor.data = producto.proveedor
+            # Mostrar URL si la imagen es remota
+            if producto.imagen and producto.imagen.startswith("http"):
+                form.imagen_url.data = producto.imagen
         else:
             flash("Producto no encontrado.", "danger")
             return redirect(url_for("inventario_view"))
 
     if form.validate_on_submit():
+        imagen_valor = None
+        if form.imagen_archivo.data and form.imagen_archivo.data.filename:
+            filename = secure_filename(form.imagen_archivo.data.filename)
+            if filename:
+                nombre_unico = f"{uuid4().hex}_{filename}"
+                ruta_destino = os.path.join(app.config["UPLOAD_FOLDER"], nombre_unico)
+                form.imagen_archivo.data.save(ruta_destino)
+                imagen_valor = f"uploads/{nombre_unico}"
+        elif form.imagen_url.data:
+            imagen_valor = form.imagen_url.data.strip()
+        # Si no se envía nada, conserva la imagen actual
+        if imagen_valor is None and 'producto' in locals() and producto:
+            imagen_valor = producto.imagen
+
         actualizado = inventario.actualizar_producto(
             id_producto=id,
             nombre=form.nombre.data,
@@ -285,6 +395,7 @@ def editar(id):
             cantidad=form.cantidad.data,
             precio=form.precio.data,
             proveedor=form.proveedor.data,
+            imagen=imagen_valor,
         )
         if actualizado:
             sincronizar_archivos_desde_inventario()
@@ -293,11 +404,15 @@ def editar(id):
             flash("No se pudo actualizar el producto.", "danger")
         return redirect(url_for("inventario_view"))
 
-    return render_template("editar_producto.html", form=form, id=id)
+    return render_template("editar_producto.html", form=form, id=id, producto=locals().get("producto"))
 
 
 @app.route("/eliminar/<int:id>")
+@login_required
 def eliminar(id):
+    if not current_user.is_admin():
+        flash("Acceso denegado. Solo administradores pueden eliminar productos.", "danger")
+        return redirect(url_for("inventario_view"))
     if inventario.eliminar_producto(id):
         sincronizar_archivos_desde_inventario()
         flash("Producto eliminado y archivos sincronizados.", "warning")
@@ -307,6 +422,7 @@ def eliminar(id):
 
 
 @app.route("/buscar", methods=["GET", "POST"])
+@login_required
 def buscar():
     form = BusquedaForm()
     productos = []
@@ -326,6 +442,7 @@ def buscar():
 
 
 @app.route("/clientes", methods=["GET", "POST"])
+@login_required
 def clientes():
     form = ClienteForm()
 
@@ -355,6 +472,7 @@ def clientes():
 
 
 @app.route("/clientes/buscar", methods=["GET", "POST"])
+@login_required
 def buscar_cliente():
     form = BusquedaClienteForm()
     clientes_encontrados = []
@@ -375,7 +493,11 @@ def buscar_cliente():
 
 
 @app.route("/clientes/eliminar/<string:ruc>", methods=["POST"])
+@login_required
 def eliminar_cliente(ruc):
+    if not current_user.is_admin():
+        flash("Acceso denegado. Solo administradores pueden eliminar clientes.", "danger")
+        return redirect(url_for("clientes"))
     if inventario.eliminar_cliente(ruc):
         sincronizar_archivos_desde_clientes()
         flash("Cliente eliminado.", "warning")
@@ -385,6 +507,7 @@ def eliminar_cliente(ruc):
 
 
 @app.route("/clientes/editar/<string:ruc>", methods=["GET", "POST"])
+@login_required
 def editar_cliente(ruc):
     cliente = inventario.obtener_cliente_por_id(ruc)
     if not cliente:
@@ -425,16 +548,21 @@ def editar_cliente(ruc):
 
 
 @app.route("/usuarios", methods=["GET", "POST"])
+@login_required
 def usuarios():
+    if not current_user.is_admin():
+        flash("Acceso denegado. Solo administradores pueden gestionar usuarios.", "danger")
+        return redirect(url_for('index'))
     """
     CRUD básico para la tabla usuarios (MySQL/SQLite).
     """
     form = UsuarioForm()
     if form.validate_on_submit():
+        hashed_password = generate_password_hash(form.password.data)
         nuevo = inventario.agregar_usuario(
             nombre=form.nombre.data,
-            mail=form.mail.data,
-            password=form.password.data,
+            email=form.email.data,
+            password=hashed_password,
         )
         if nuevo is None:
             flash("El correo ya existe. Usa uno diferente.", "danger")
@@ -452,7 +580,11 @@ def usuarios():
 
 
 @app.route("/usuarios/eliminar/<int:id_usuario>", methods=["POST"])
+@login_required
 def eliminar_usuario(id_usuario):
+    if not current_user.is_admin():
+        flash("Acceso denegado. Solo administradores pueden gestionar usuarios.", "danger")
+        return redirect(url_for('index'))
     if inventario.eliminar_usuario(id_usuario):
         flash("Usuario eliminado.", "warning")
     else:
@@ -461,7 +593,11 @@ def eliminar_usuario(id_usuario):
 
 
 @app.route("/usuarios/editar/<int:id_usuario>", methods=["GET", "POST"])
+@login_required
 def editar_usuario(id_usuario):
+    if not current_user.is_admin():
+        flash("Acceso denegado. Solo administradores pueden gestionar usuarios.", "danger")
+        return redirect(url_for('index'))
     usuarios = inventario.obtener_usuarios()
     usuario = next((u for u in usuarios if u.id_usuario == id_usuario), None)
     if not usuario:
@@ -472,15 +608,17 @@ def editar_usuario(id_usuario):
 
     if request.method == "GET":
         form.nombre.data = usuario.nombre
-        form.mail.data = usuario.mail
-        form.password.data = usuario.password
+        form.email.data = usuario.email
+    # No cargo la contraseña por seguridad
 
     if form.validate_on_submit():
+        # Solo actualizo si me dan una contraseña nueva
+        password = generate_password_hash(form.password.data) if form.password.data else usuario.password
         actualizado, motivo = inventario.actualizar_usuario(
             id_usuario=id_usuario,
             nombre=form.nombre.data,
-            mail=form.mail.data,
-            password=form.password.data,
+            email=form.email.data,
+            role=usuario.role,  # Mantengo el rol actual
         )
         if not actualizado:
             if motivo == "duplicado":
@@ -536,6 +674,117 @@ def error_404(_e):
     return render_template("index.html"), 404
 
 
+# ----------------- Cuenta de usuario ----------------- #
+@app.route("/mi_cuenta", methods=["GET", "POST"])
+@login_required
+def mi_cuenta():
+    perfil_form = ProfileForm()
+    pwd_form = PasswordChangeForm()
+
+    # Aqui precargo mi nombre y correo en el formulario de perfil
+    if request.method == "GET":
+        perfil_form.nombre.data = current_user.nombre
+        perfil_form.email.data = current_user.email
+
+    if perfil_form.enviar.data and perfil_form.validate_on_submit():
+        # Actualizo mis datos basicos
+        actualizado, motivo = inventario.actualizar_usuario(
+            id_usuario=current_user.id_usuario,
+            nombre=perfil_form.nombre.data,
+            email=perfil_form.email.data,
+            role=current_user.role,
+        )
+        if not actualizado:
+            mensaje = "El correo ya existe." if motivo == "duplicado" else "No se pudo actualizar tu perfil."
+            flash(mensaje, "danger")
+        else:
+            flash("Perfil actualizado.", "success")
+        return redirect(url_for("mi_cuenta"))
+
+    if pwd_form.enviar.data and pwd_form.validate_on_submit():
+        # Verifico mi password actual antes de cambiarla
+        if not check_password_hash(current_user.password, pwd_form.password_actual.data):
+            flash("La contraseña actual es incorrecta.", "danger")
+            return redirect(url_for("mi_cuenta"))
+        nuevo_hash = generate_password_hash(pwd_form.password_nueva.data)
+        if inventario.cambiar_password(current_user.id_usuario, nuevo_hash):
+            flash("Contraseña actualizada.", "success")
+        else:
+            flash("No se pudo actualizar la contraseña.", "danger")
+        return redirect(url_for("mi_cuenta"))
+
+    return render_template("mi_cuenta.html", perfil_form=perfil_form, pwd_form=pwd_form)
+
+
+# ----------------- Solicitudes de reposición ----------------- #
+@app.route("/solicitudes", methods=["GET", "POST"])
+@login_required
+def solicitudes():
+    form = SolicitudForm()
+    if form.validate_on_submit():
+        # Creo mi solicitud de reposicion
+        inventario.crear_solicitud(
+            usuario_id=current_user.id_usuario,
+            titulo=form.titulo.data,
+            detalle=form.detalle.data,
+        )
+        flash("Solicitud enviada.", "success")
+        return redirect(url_for("solicitudes"))
+    lista = inventario.obtener_solicitudes_usuario(current_user.id_usuario)
+    return render_template("solicitudes.html", form=form, solicitudes=lista)
+
+
+@app.route("/admin/solicitudes", methods=["GET", "POST"])
+@login_required
+def admin_solicitudes():
+    if not current_user.is_admin():
+        flash("Acceso denegado. Solo administradores.", "danger")
+        return redirect(url_for("index"))
+    # Como admin veo todas las solicitudes
+    lista = inventario.obtener_solicitudes()
+    return render_template("admin_solicitudes.html", solicitudes=lista)
+
+
+@app.route("/admin/solicitudes/<int:solicitud_id>/<string:estado>", methods=["POST"])
+@login_required
+def cambiar_estado_solicitud(solicitud_id, estado):
+    if not current_user.is_admin():
+        flash("Acceso denegado. Solo administradores.", "danger")
+        return redirect(url_for("index"))
+    if estado not in ["aprobada", "rechazada", "pendiente"]:
+        flash("Estado no valido.", "danger")
+        return redirect(url_for("admin_solicitudes"))
+    # Actualizo el estado seleccionado para la solicitud
+    ok = inventario.actualizar_estado_solicitud(solicitud_id, estado)
+    flash("Estado actualizado." if ok else "No se pudo actualizar.", "info" if ok else "danger")
+    return redirect(url_for("admin_solicitudes"))
+
+
+# ----------------- Exportación solo lectura ----------------- #
+@app.route("/export/productos/<string:formato>")
+@login_required
+def export_productos(formato):
+    productos = [_producto_a_dict(p) for p in inventario.obtener_todos()]
+    if formato.lower() == "json":
+        # Entrego el JSON directamente
+        return Response(json.dumps(productos, ensure_ascii=False, indent=2), mimetype="application/json")
+    if formato.lower() == "csv":
+        # Genero CSV en memoria para descargar
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=["id", "nombre", "categoria", "cantidad", "precio", "proveedor"])
+        writer.writeheader()
+        writer.writerows(productos)
+        csv_data = output.getvalue()
+        return Response(
+            csv_data,
+            mimetype="text/csv",
+            headers={"Content-Disposition": "attachment; filename=productos.csv"},
+        )
+    flash("Formato no soportado. Usa json o csv.", "danger")
+    return redirect(url_for("inventario_view"))
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
 

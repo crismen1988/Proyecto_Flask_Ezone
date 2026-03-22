@@ -155,10 +155,14 @@ def main():
             inserted_cli += 1
 
         for u in usuarios_list:
+            email = u.get("email") or u.get("mail")
+            if not email:
+                # Si no hay correo, no podemos crear el usuario
+                continue
             obj = Usuario(
                 id_usuario=u.get("id_usuario"),
                 nombre=u["nombre"],
-                mail=u["mail"],
+                email=email,
                 password=u["password"],
             )
             session.merge(obj)

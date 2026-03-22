@@ -14,16 +14,23 @@
                 {% endfor %}
             </div>
             <div class="mb-3">
-                {{ form.mail.label(class="form-label") }}
-                {{ form.mail(class="form-control") }}
-                {% for error in form.mail.errors %}
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control") }}
+                {% for error in form.email.errors %}
                     <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="mb-3">
                 {{ form.password.label(class="form-label") }}
-                {{ form.password(class="form-control") }}
+                {{ form.password(class="form-control", type='password') }}
                 {% for error in form.password.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.confirm_password.label(class="form-label") }}
+                {{ form.confirm_password(class="form-control", type='password') }}
+                {% for error in form.confirm_password.errors %}
                     <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
             </div>
@@ -39,6 +46,8 @@
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Mail</th>
+                        <th>Role</th>
+                        <th>Contraseña (Hash)</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -47,7 +56,12 @@
                     <tr>
                         <td>{{ usuario.id_usuario }}</td>
                         <td>{{ usuario.nombre }}</td>
-                        <td>{{ usuario.mail }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>{{ usuario.role }}</td>
+                        <td>
+                            <span id="hash-{{ usuario.id_usuario }}" style="display: none; font-family: monospace;">{{ usuario.password }}</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleHash({{ usuario.id_usuario }})">Mostrar/ocultar</button>
+                        </td>
                         <td class="d-flex gap-2">
                             <a class="btn btn-sm btn-outline-info" href="{{ url_for('editar_usuario', id_usuario=usuario.id_usuario) }}">
                                 Editar
@@ -67,4 +81,14 @@
         </div>
     </div>
 </div>
+<script>
+function toggleHash(id) {
+    const span = document.getElementById('hash-' + id);
+    if(span.style.display === 'none') {
+        span.style.display = 'inline';
+    } else {
+        span.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}
