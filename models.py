@@ -123,10 +123,12 @@ class Inventario:
     def __init__(self, db_name: str = "ezone.db", use_mysql: Optional[bool] = None):
         self.sqlite_path = os.path.join(BASE_DIR, db_name)
         self.sqlite_url = f"sqlite:///{self.sqlite_path}"
-        # Forzamos MySQL: si falla, levantamos excepción en vez de hacer fallback.
-        self.use_mysql = True if use_mysql is None else use_mysql
+        # Permitir controlar uso de MySQL via env USE_MYSQL (1/0). Por defecto True.
+        env_flag = os.getenv('USE_MYSQL', '1')
+        env_use_mysql = env_flag.strip() not in ['0', 'false', 'False', 'no', 'No']
+        self.use_mysql = env_use_mysql if use_mysql is None else use_mysql
 
-        # Aqui construyo el engine segun la configuracion (MySQL obligado)
+        # Aqui construyo el engine segun la configuracion (MySQL preferido; SQLite si se desactiva)
         self.engine = self._build_engine()
         self.Session = sessionmaker(
             bind=self.engine,
@@ -141,7 +143,8 @@ class Inventario:
 
     def _build_engine(self):
         if not self.use_mysql:
-            raise RuntimeError("MySQL es obligatorio; inicializa Inventario con use_mysql=True.")
+            # Fallback a SQLite si se desactiva MySQL por configuracion
+            return create_engine(self.sqlite_url, future=True, echo=False)
         try:
             engine = get_mysql_engine()
             # Aqui hago un ping rapido para asegurar que la conexion responde
