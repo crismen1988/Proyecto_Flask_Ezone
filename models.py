@@ -123,7 +123,7 @@ class Inventario:
     def __init__(self, db_name: str = "ezone.db", use_mysql: Optional[bool] = None):
         self.sqlite_path = os.path.join(BASE_DIR, db_name)
         self.sqlite_url = f"sqlite:///{self.sqlite_path}"
-        # Permitir controlar uso de MySQL via env USE_MYSQL (1/0). Por defecto True.
+        # MySQL obligatorio salvo que se desactive expresamente (default: True)
         env_flag = os.getenv('USE_MYSQL', '1')
         env_use_mysql = env_flag.strip() not in ['0', 'false', 'False', 'no', 'No']
         self.use_mysql = env_use_mysql if use_mysql is None else use_mysql
@@ -143,7 +143,7 @@ class Inventario:
 
     def _build_engine(self):
         if not self.use_mysql:
-            # Fallback a SQLite si se desactiva MySQL por configuracion
+            # Fallback a SQLite si se desactiva MySQL por configuracion (solo uso local)
             return create_engine(self.sqlite_url, future=True, echo=False)
         try:
             engine = get_mysql_engine()

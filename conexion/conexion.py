@@ -23,6 +23,7 @@ MYSQL_CONFIG: Dict[str, str] = {
     "user": os.getenv("MYSQL_USER", "root"),
     "password": os.getenv("MYSQL_PASSWORD", ""),
     "database": os.getenv("MYSQL_DATABASE", "ezone"),
+    "ssl": os.getenv("MYSQL_SSL", "0"),  # 1/true para habilitar SSL
 }
 
 
@@ -42,11 +43,17 @@ def get_mysql_engine(echo: bool = False) -> Engine:
     """
     Retorna un engine SQLAlchemy listo para usarse con MySQL.
     """
+    connect_args = {}
+    # Algunos proveedores (p. ej. Render + Clever Cloud) exigen SSL
+    if MYSQL_CONFIG["ssl"].strip().lower() in ("1", "true", "yes", "on"):
+        connect_args["ssl"] = {"ssl": {}}
+
     return create_engine(
         get_mysql_url(),
         echo=echo,
         future=True,
         pool_pre_ping=True,  # reintenta conexiones que caduquen
+        connect_args=connect_args,
     )
 
 
@@ -74,10 +81,13 @@ def raw_mysql_connection():
     """
     import mysql.connector
 
-    return mysql.connector.connect(
-        host=MYSQL_CONFIG["host"],
-        port=int(MYSQL_CONFIG["port"]),
-        user=MYSQL_CONFIG["user"],
-        password=MYSQL_CONFIG["password"],
-        database=MYSQL_CONFIG["database"],
-    )
+    kwargs = {
+        "host": MYSQL_CONFIG["host"],
+        "port": int(MYSQL_CONFIG["port"]),
+        "user": MYSQL_CONFIG["user"],
+        "password": MYSQL_CONFIG["password"],
+        "database": MYSQL_CONFIG["database"],
+    }
+    if MYSQL_CONFIG["ssl"].strip().lower() in ("1", "true", "yes", "on"):
+        kwargs["ssl_disabled"] = False
+    return mysql.connector.connect(**kwargs)
