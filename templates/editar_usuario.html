@@ -11,9 +11,9 @@
         {% endfor %}
     </div>
     <div class="mb-3">
-        {{ form.mail.label(class="form-label") }}
-        {{ form.mail(class="form-control") }}
-        {% for error in form.mail.errors %}
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control") }}
+        {% for error in form.email.errors %}
             <div class="text-danger small">{{ error }}</div>
         {% endfor %}
     </div>
@@ -24,6 +24,6 @@
             <div class="text-danger small">{{ error }}</div>
         {% endfor %}
     </div>
-    {{ form.enviar(class="btn btn-primary") }}
+    {{ form.enviar(class="btn btn-primary", value="Actualizar") }}
     <a class="btn btn-secondary ms-2" href="{{ url_for('usuarios') }}">Volver</a>
 {% endblock %}

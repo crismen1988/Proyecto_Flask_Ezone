@@ -1,7 +1,24 @@
 .ezone-header {
-    background: linear-gradient(135deg, #eef4ff 0%, #dbe9ff 50%, #c7defc 100%);
-    color: #0b2a5a;
+    background: linear-gradient(135deg, #f8fbff 0%, #e6f1ff 50%, #d4e8ff 100%);
+    color: #0b172a;
     padding: 2rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.ezone-header::before,
+.ezone-header::after {
+    content: "";
+    position: absolute;
+    inset: -15%;
+    background: radial-gradient(circle at 20% 30%, rgba(13,110,253,0.12), transparent 45%),
+                radial-gradient(circle at 80% 60%, rgba(17,24,39,0.10), transparent 40%);
+    transform: rotate(8deg);
+}
+
+.ezone-header::after {
+    opacity: 0.4;
+    filter: blur(10px);
 }
 
 .ezone-logo {
