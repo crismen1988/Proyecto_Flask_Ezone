@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, Float, ForeignKey
+from sqlalchemy import Integer, Float, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -12,6 +12,7 @@ class FacturaDetalle(Base):
     producto_id: Mapped[int] = mapped_column(Integer, ForeignKey("productos.id"), nullable=False)
     cantidad: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     precio_unitario: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    stock_aplicado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     factura = relationship("Factura", back_populates="detalles")
     producto = relationship("Producto")

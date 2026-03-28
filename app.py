@@ -9,7 +9,7 @@ import io
 from uuid import uuid4
 from datetime import timedelta
 
-from flask import Flask, render_template, redirect, url_for, flash, request, Response, send_file
+from flask import Flask, render_template, redirect, url_for, flash, request, Response, send_file, session
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -967,6 +967,7 @@ def reporte_clientes_pdf():
     )
 
 
+
 # ----------- Facturas (vista) ----------- #
 @app.route("/facturas")
 @login_required
@@ -994,6 +995,8 @@ def factura_detalle_view(factura_id):
 
 # Helpers de facturas
 def _facturas_con_totales():
+    # aplica stock pendiente antes de mostrar
+    factura_detalle_service.aplicar_stock_pendiente()
     resultados = []
     with SessionLocal() as session:
         facturas = (
@@ -1046,6 +1049,13 @@ def _factura_detalle_data(factura_id: int):
         )
         if not factura:
             return None
+        # Asegura stock aplicado para esta factura
+        for d in factura.detalles:
+            if d.producto and not d.stock_aplicado:
+                d.producto.cantidad = max(0, (d.producto.cantidad or 0) - (d.cantidad or 0))
+                d.stock_aplicado = True
+        session.flush()
+
         detalles_data = []
         for d in factura.detalles:
             detalles_data.append(
