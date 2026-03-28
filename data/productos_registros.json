@@ -3,7 +3,7 @@
     "id": 9,
     "nombre": "VIDEPORTERO IP DS-KH8520-WTE1",
     "categoria": "Acceso Control",
-    "cantidad": 6,
+    "cantidad": 10,
     "precio": 196.3,
     "proveedor": "TECHRESOURCES",
     "imagen": "uploads/fd5514dcd1f14ab5bf50fd6ba00ac6b4_portero.jpg"
@@ -21,7 +21,7 @@
     "id": 7,
     "nombre": "EZVIZ H90",
     "categoria": "Camaras IP",
-    "cantidad": 15,
+    "cantidad": 5,
     "precio": 85.99,
     "proveedor": "TechResources",
     "imagen": "uploads/247f3c98b7f24fb89bf56396c8e24bb4_ezviz_h90.jpg"
@@ -30,7 +30,7 @@
     "id": 3,
     "nombre": "Control de acceso biométrico",
     "categoria": "Acceso Control",
-    "cantidad": 5,
+    "cantidad": 12,
     "precio": 289.0,
     "proveedor": "ZKTeco",
     "imagen": "uploads/f140d9026d8a49f5aa7028586ac8b2fb_zkteco.jpg"
@@ -39,7 +39,7 @@
     "id": 2,
     "nombre": "Panel de alarma inalámbrico",
     "categoria": "Alarmas",
-    "cantidad": 8,
+    "cantidad": 3,
     "precio": 199.5,
     "proveedor": "DSC",
     "imagen": "uploads/1665fce2d560468cb87ce561e1ec0105_dsc.jpg"
@@ -48,7 +48,7 @@
     "id": 1,
     "nombre": "Kit EasyLink Hikvision 2Mp",
     "categoria": "Camaras IP",
-    "cantidad": 12,
+    "cantidad": 4,
     "precio": 90.2,
     "proveedor": "Hikvision",
     "imagen": "uploads/029f514ded9b4f6b8e6607c0e1c74254_easy_link.jpg"

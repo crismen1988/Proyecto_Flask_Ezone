@@ -1,5 +1,6 @@
 from typing import List
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from models.solicitud import Solicitud
 
@@ -18,13 +19,18 @@ class SolicitudService:
 
     def listar_por_usuario(self, usuario_id: int) -> List[Solicitud]:
         with self.Session() as session:
-            return session.execute(
-                select(Solicitud).where(Solicitud.usuario_id == usuario_id).order_by(Solicitud.id.desc())
-            ).scalars().all()
+            stmt = (
+                select(Solicitud)
+                .options(selectinload(Solicitud.usuario))
+                .where(Solicitud.usuario_id == usuario_id)
+                .order_by(Solicitud.id.desc())
+            )
+            return session.execute(stmt).scalars().all()
 
     def listar_todas(self) -> List[Solicitud]:
         with self.Session() as session:
-            return session.execute(select(Solicitud).order_by(Solicitud.id.desc())).scalars().all()
+            stmt = select(Solicitud).options(selectinload(Solicitud.usuario)).order_by(Solicitud.id.desc())
+            return session.execute(stmt).scalars().all()
 
     def actualizar_estado(self, solicitud_id: int, estado: str) -> bool:
         with self.Session() as session:

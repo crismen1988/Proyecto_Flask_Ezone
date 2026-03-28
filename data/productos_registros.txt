@@ -1,6 +1,6 @@
-9|VIDEPORTERO IP DS-KH8520-WTE1|Acceso Control|6|196.3|TECHRESOURCES|uploads/fd5514dcd1f14ab5bf50fd6ba00ac6b4_portero.jpg
+9|VIDEPORTERO IP DS-KH8520-WTE1|Acceso Control|10|196.3|TECHRESOURCES|uploads/fd5514dcd1f14ab5bf50fd6ba00ac6b4_portero.jpg
 8|Cerca Eléctrica Hagroy|Seguridad Electrónica|5|105.65|System Seguridad|uploads/056e967779e44ae4af713cc8244a7ee3_hagroy.jpg
-7|EZVIZ H90|Camaras IP|15|85.99|TechResources|uploads/247f3c98b7f24fb89bf56396c8e24bb4_ezviz_h90.jpg
-3|Control de acceso biométrico|Acceso Control|5|289.0|ZKTeco|uploads/f140d9026d8a49f5aa7028586ac8b2fb_zkteco.jpg
-2|Panel de alarma inalámbrico|Alarmas|8|199.5|DSC|uploads/1665fce2d560468cb87ce561e1ec0105_dsc.jpg
-1|Kit EasyLink Hikvision 2Mp|Camaras IP|12|90.2|Hikvision|uploads/029f514ded9b4f6b8e6607c0e1c74254_easy_link.jpg
+7|EZVIZ H90|Camaras IP|5|85.99|TechResources|uploads/247f3c98b7f24fb89bf56396c8e24bb4_ezviz_h90.jpg
+3|Control de acceso biométrico|Acceso Control|12|289.0|ZKTeco|uploads/f140d9026d8a49f5aa7028586ac8b2fb_zkteco.jpg
+2|Panel de alarma inalámbrico|Alarmas|3|199.5|DSC|uploads/1665fce2d560468cb87ce561e1ec0105_dsc.jpg
+1|Kit EasyLink Hikvision 2Mp|Camaras IP|4|90.2|Hikvision|uploads/029f514ded9b4f6b8e6607c0e1c74254_easy_link.jpg
