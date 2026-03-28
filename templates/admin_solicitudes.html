@@ -15,15 +15,14 @@
           <td>{{ s.detalle }}</td>
           <td><span class="badge bg-secondary">{{ s.estado }}</span></td>
           <td>
-            <form method="POST" action="{{ url_for('cambiar_estado_solicitud', solicitud_id=s.id, estado='aprobada') }}" class="d-inline">
-              <button class="btn btn-sm btn-success">Aprobar</button>
-            </form>
-            <form method="POST" action="{{ url_for('cambiar_estado_solicitud', solicitud_id=s.id, estado='rechazada') }}" class="d-inline ms-1">
-              <button class="btn btn-sm btn-danger">Rechazar</button>
-            </form>
-            <form method="POST" action="{{ url_for('cambiar_estado_solicitud', solicitud_id=s.id, estado='pendiente') }}" class="d-inline ms-1">
-              <button class="btn btn-sm btn-secondary">Pendiente</button>
-            </form>
+            <div class="d-flex flex-wrap gap-2">
+              <form method="POST" action="{{ url_for('cambiar_estado_solicitud', solicitud_id=s.id, estado='aprobada') }}">
+                <button class="btn btn-sm btn-success">Aprobar</button>
+              </form>
+              <form method="POST" action="{{ url_for('cambiar_estado_solicitud', solicitud_id=s.id, estado='rechazada') }}">
+                <button class="btn btn-sm btn-danger">Rechazar</button>
+              </form>
+            </div>
           </td>
         </tr>
         {% endfor %}
