@@ -126,7 +126,15 @@
             const rows = lineas.querySelectorAll('tr');
             if (rows.length > 1) {
                 e.target.closest('tr').remove();
+            } else {
+                // si es la única fila, simplemente la limpiamos
+                const row = rows[0];
+                row.querySelectorAll('select, input').forEach(el => {
+                    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                    if (el.tagName === 'INPUT') el.value = '1';
+                });
             }
+            recalc();
         }
     });
 
