@@ -43,7 +43,11 @@ def get_mysql_engine(echo: bool = False) -> Engine:
     """
     Retorna un engine SQLAlchemy listo para usarse con MySQL.
     """
-    connect_args = {}
+    connect_args = {
+        "connect_timeout": 5,
+        "read_timeout": 5,
+        "write_timeout": 5,
+    }
     # Algunos proveedores (p. ej. Render + Clever Cloud) exigen SSL
     if MYSQL_CONFIG["ssl"].strip().lower() in ("1", "true", "yes", "on"):
         connect_args["ssl"] = {"ssl": {}}
@@ -53,6 +57,7 @@ def get_mysql_engine(echo: bool = False) -> Engine:
         echo=echo,
         future=True,
         pool_pre_ping=True,  # reintenta conexiones que caduquen
+        pool_recycle=280,
         connect_args=connect_args,
     )
 
