@@ -7,7 +7,7 @@ import json
 import os
 import io
 from uuid import uuid4
-from datetime import timedelta
+from datetime import timedelta, date
 
 from flask import Flask, render_template, redirect, url_for, flash, request, Response, send_file, session
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -37,7 +37,7 @@ from services import (
 )
 from models import Factura, FacturaDetalle
 from services.db import engine
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 # Reporte PDF
@@ -67,6 +67,8 @@ factura_detalle_service = FacturaDetalleService(SessionLocal)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+login_manager.login_message = "Por favor inicia sesión para acceder a esta página."
+login_manager.login_message_category = "warning"
 
 
 @login_manager.user_loader
@@ -972,9 +974,116 @@ def reporte_clientes_pdf():
 @app.route("/facturas")
 @login_required
 def facturas_view():
+    _renumerar_facturas()
     facturas = _facturas_con_totales()
     return render_template("facturas.html", facturas=facturas)
 
+
+@app.route("/facturas/nueva", methods=["GET", "POST"])
+@login_required
+def factura_nueva():
+    clientes = cliente_service.listar()
+    clientes_json = [
+        {
+            "ruc": c.ruc,
+            "nombre": c.nombre,
+            "telefono": c.telefono,
+            "email": c.email,
+            "direccion": c.direccion,
+        }
+        for c in clientes
+    ]
+    productos = producto_service.listar()
+
+    if request.method == "POST":
+        cliente_ruc_input = (request.form.get("cliente_ruc") or "").strip()
+        cliente_nombre_manual = request.form.get("cliente_nombre_manual") or "Consumidor Final"
+        telefono_nuevo = request.form.get("cliente_tel", "") or ""
+        email_nuevo = request.form.get("cliente_email", "") or ""
+        direccion_nueva = request.form.get("cliente_dir", "") or ""
+
+        cliente_obj = cliente_service.obtener(cliente_ruc_input) if cliente_ruc_input else None
+        if not cliente_obj and cliente_ruc_input:
+            correo_para_guardar = email_nuevo or f"{cliente_ruc_input}@noemail.local"
+            cliente_obj = cliente_service.crear(
+                ruc=cliente_ruc_input,
+                nombre=cliente_nombre_manual.strip() or "Cliente nuevo",
+                telefono=telefono_nuevo,
+                email=correo_para_guardar,
+                direccion=direccion_nueva or "Sin dirección",
+            )
+            if cliente_obj is None:
+                flash("RUC/Cédula ya existe o correo duplicado. Usa uno diferente.", "danger")
+                return render_template(
+                    "factura_nueva.html",
+                    clientes=clientes,
+                    clientes_json=json.dumps(clientes_json),
+                    productos=productos,
+                )
+
+        cliente_nombre = cliente_obj.nombre if cliente_obj else cliente_nombre_manual
+        numero = _siguiente_numero_factura()
+
+        lineas = []
+        for pid, cant in zip(request.form.getlist("producto_id"), request.form.getlist("cantidad")):
+            if not pid or not cant:
+                continue
+            try:
+                pid_int = int(pid)
+                cant_int = int(cant)
+            except ValueError:
+                continue
+            if cant_int <= 0:
+                continue
+            prod = producto_service.obtener(pid_int)
+            if not prod:
+                continue
+            lineas.append({"producto": prod, "cantidad": cant_int, "precio": prod.precio})
+
+        if not lineas:
+            flash("Agrega al menos un producto con cantidad válida.", "danger")
+            return render_template(
+                "factura_nueva.html",
+                clientes=clientes,
+                clientes_json=json.dumps(clientes_json),
+                productos=productos,
+            )
+
+        subtotal = sum(l["precio"] * l["cantidad"] for l in lineas)
+        total = subtotal * 1.15
+
+        with SessionLocal() as session:
+            factura = Factura(
+                fecha=date.today(),
+                numero=numero,
+                cliente=cliente_nombre,
+                cliente_ruc=cliente_obj.ruc if cliente_obj else None,
+                total=total,
+                estado="emitida",
+            )
+            session.add(factura)
+            session.flush()
+            for l in lineas:
+                session.add(
+                    FacturaDetalle(
+                        factura_id=factura.id,
+                        producto_id=l["producto"].id,
+                        cantidad=l["cantidad"],
+                        precio_unitario=l["precio"],
+                        stock_aplicado=False,
+                    )
+                )
+            session.commit()
+
+        flash("Factura creada correctamente.", "success")
+        return redirect(url_for("facturas_view"))
+
+    return render_template(
+        "factura_nueva.html",
+        clientes=clientes,
+        clientes_json=json.dumps(clientes_json),
+        productos=productos,
+    )
 
 @app.route("/facturas/<int:factura_id>")
 @login_required
@@ -1087,6 +1196,35 @@ def _factura_detalle_data(factura_id: int):
         }
         return {"factura": factura_data, "detalles": detalles_data, "subtotal": subtotal, "iva": iva, "total": total}
 
+
+def _format_num_factura(consecutivo: int) -> str:
+    return f"F-{consecutivo:06d}"
+
+
+def _siguiente_numero_factura() -> str:
+    with SessionLocal() as session:
+        from sqlalchemy import func
+
+        total = session.execute(select(func.count(Factura.id))).scalar() or 0
+        return _format_num_factura(total + 1)
+
+
+def _renumerar_facturas():
+    """Ajusta numeración en serie sobre todas las facturas existentes."""
+    with SessionLocal() as session:
+        facturas = (
+            session.execute(select(Factura).order_by(Factura.fecha.asc(), Factura.id.asc()))
+            .scalars()
+            .all()
+        )
+        changed = False
+        for idx, f in enumerate(facturas, start=1):
+            numero_ok = _format_num_factura(idx)
+            if f.numero != numero_ok:
+                f.numero = numero_ok
+                changed = True
+        if changed:
+            session.commit()
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

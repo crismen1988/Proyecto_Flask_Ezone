@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-file-earmark-plus"></i> Nueva factura</h2>
+    <a class="btn btn-outline-secondary" href="{{ url_for('facturas_view') }}">
+        <i class="bi bi-arrow-left"></i> Volver a facturas
+    </a>
+</div>
+
+<form method="post">
+    <div class="card mb-3">
+        <div class="card-header fw-semibold">Datos del cliente</div>
+        <div class="card-body row g-3">
+            <div class="col-md-6">
+                <label class="form-label">RUC/Cédula</label>
+                <input type="text" class="form-control" name="cliente_ruc" id="cliente_ruc" list="clientes_list">
+                <datalist id="clientes_list">
+                    {% for c in clientes %}
+                    <option value="{{ c.ruc }}">{{ c.nombre }}</option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Nombre para la factura</label>
+                <input type="text" class="form-control" name="cliente_nombre_manual" id="cliente_nombre_manual" placeholder="Consumidor Final">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Teléfono</label>
+                <input type="text" class="form-control" name="cliente_tel" id="cliente_tel">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Correo</label>
+                <input type="email" class="form-control" name="cliente_email" id="cliente_email">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Dirección</label>
+                <input type="text" class="form-control" name="cliente_dir" id="cliente_dir">
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Productos</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-line">
+                <i class="bi bi-plus-circle"></i> Agregar producto
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-middle" id="lineas">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:45%">Producto</th>
+                            <th style="width:15%">Cantidad</th>
+                            <th style="width:15%">Precio unit.</th>
+                            <th style="width:15%">Subtotal</th>
+                            <th style="width:10%"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <select class="form-select producto" name="producto_id">
+                                    <option value="">-- Selecciona --</option>
+                                    {% for p in productos %}
+                                    <option value="{{ p.id }}" data-precio="{{ '%.2f'|format(p.precio) }}">
+                                        {{ p.nombre }} (Stock: {{ p.cantidad }}) - ${{ '%.2f'|format(p.precio) }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><input type="number" name="cantidad" class="form-control cantidad" min="1" value="1"></td>
+                            <td class="precio-unit">$<span>0.00</span></td>
+                            <td class="line-total">$<span>0.00</span></td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-line" tabindex="-1">✕</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('facturas_view') }}">Cancelar</a>
+        <button class="btn btn-success" type="submit"><i class="bi bi-check2-circle"></i> Generar factura</button>
+    </div>
+</form>
+
+<script>
+(() => {
+    const clientes = {{ clientes_json|safe }};
+    const lineas = document.querySelector('#lineas tbody');
+    const addBtn = document.querySelector('#add-line');
+    const rucInput = document.querySelector('#cliente_ruc');
+
+    const loadCliente = (ruc) => {
+        const cli = clientes.find(c => c.ruc === ruc);
+        document.querySelector('#cliente_nombre_manual').value = cli ? cli.nombre : '';
+        document.querySelector('#cliente_tel').value = cli ? cli.telefono : '';
+        document.querySelector('#cliente_email').value = cli ? cli.email : '';
+        document.querySelector('#cliente_dir').value = cli ? cli.direccion : '';
+    };
+
+    const recalc = () => {
+        lineas.querySelectorAll('tr').forEach(row => {
+            const sel = row.querySelector('.producto');
+            const qty = parseInt(row.querySelector('.cantidad').value || '0', 10);
+            const price = parseFloat(sel.selectedOptions[0]?.dataset.precio || '0');
+            row.querySelector('.precio-unit span').textContent = price.toFixed(2);
+            row.querySelector('.line-total span').textContent = (price * qty).toFixed(2);
+        });
+    };
+
+    addBtn.addEventListener('click', () => {
+        const first = lineas.querySelector('tr');
+        const clone = first.cloneNode(true);
+        clone.querySelectorAll('select, input').forEach(el => {
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            if (el.tagName === 'INPUT') el.value = '1';
+        });
+        lineas.appendChild(clone);
+        recalc();
+    });
+
+    lineas.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-line')) {
+            const rows = lineas.querySelectorAll('tr');
+            if (rows.length > 1) {
+                e.target.closest('tr').remove();
+            }
+        }
+    });
+
+    lineas.addEventListener('change', recalc);
+    lineas.addEventListener('input', recalc);
+    recalc();
+
+    rucInput?.addEventListener('change', (e) => loadCliente(e.target.value.trim()));
+    rucInput?.addEventListener('blur', (e) => loadCliente(e.target.value.trim()));
+})();
+</script>
+{% endblock %}
