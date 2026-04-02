@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-3">
+        <h2><i class="bi bi-people"></i> Gestion de Clientes - EZONE</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-5 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                Registrar Cliente
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.ruc.label(class="form-label") }}
+                        {{ form.ruc(class="form-control", placeholder="RUC de 13 digitos") }}
+                        {% for error in form.ruc.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.nombre.label(class="form-label") }}
+                        {{ form.nombre(class="form-control", placeholder="Nombre o razon social") }}
+                        {% for error in form.nombre.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.telefono.label(class="form-label") }}
+                        {{ form.telefono(class="form-control", placeholder="Telefono de contacto") }}
+                        {% for error in form.telefono.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", placeholder="correo@cliente.com") }}
+                        {% for error in form.email.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.direccion.label(class="form-label") }}
+                        {{ form.direccion(class="form-control", placeholder="Direccion del cliente") }}
+                        {% for error in form.direccion.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid">
+                        {{ form.enviar(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                Clientes Registrados
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('buscar_cliente') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-search"></i> Buscar Cliente
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if clientes %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>RUC</th>
+                                <th>Nombre</th>
+                                <th>Telefono</th>
+                                <th>Email</th>
+                                <th>Direccion</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes %}
+                            <tr>
+                                <td>{{ cliente.ruc }}</td>
+                                <td>{{ cliente.nombre }}</td>
+                                <td>{{ cliente.telefono or 'N/A' }}</td>
+                                <td>{{ cliente.email or 'N/A' }}</td>
+                                <td>{{ cliente.direccion or 'N/A' }}</td>
+                                <td>
+                                    <a href="{{ url_for('editar_cliente', ruc=cliente.ruc) }}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('eliminar_cliente', ruc=cliente.ruc) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar cliente?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-3">
+                    <div class="alert alert-info mb-0">
+                        Aun no hay clientes registrados.
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

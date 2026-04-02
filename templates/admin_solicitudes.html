@@ -1,0 +1,37 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-header bg-warning">Solicitudes de reposición</div>
+  <div class="card-body">
+    {% if solicitudes %}
+    <table class="table table-striped">
+      <thead><tr><th>ID</th><th>Usuario</th><th>Título</th><th>Detalle</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        {% for s in solicitudes %}
+        <tr>
+          <td>{{ s.id }}</td>
+          <td>{{ s.usuario.nombre if s.usuario else s.usuario_id }}</td>
+          <td>{{ s.titulo }}</td>
+          <td>{{ s.detalle }}</td>
+          <td><span class="badge bg-secondary">{{ s.estado }}</span></td>
+          <td>
+            <div class="d-flex flex-wrap gap-2">
+              <form method="POST" action="{{ url_for('cambiar_estado_solicitud', solicitud_id=s.id, estado='aprobada') }}">
+                <button class="btn btn-sm btn-success">Aprobar</button>
+              </form>
+              <form method="POST" action="{{ url_for('cambiar_estado_solicitud', solicitud_id=s.id, estado='rechazada') }}">
+                <button class="btn btn-sm btn-danger">Rechazar</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="text-muted">Sin solicitudes.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

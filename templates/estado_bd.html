@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Estado de la Base de Datos</h2>
+<div class="row mt-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Conexión activa</h5>
+                <p class="card-text mb-1"><strong>Motor:</strong> {{ motor }}</p>
+                <p class="card-text mb-1"><strong>Productos:</strong> {{ total_productos }}</p>
+                <p class="card-text mb-1"><strong>Clientes:</strong> {{ total_clientes }}</p>
+                <p class="card-text"><strong>Usuarios:</strong> {{ total_usuarios }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

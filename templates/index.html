@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-4">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <h2 class="display-6 fw-bold mb-3">Bienvenido a EZONE</h2>
+            <p class="lead mb-4">
+                Plataforma para gestión de inventario y clientes
+                de seguridad electrónica e instalaciones eléctricas.
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('inventario_view') }}" class="btn btn-primary btn-lg">Inventario</a>
+                <a href="{{ url_for('clientes') }}" class="btn btn-outline-primary btn-lg">Clientes</a>
+                <a href="{{ url_for('usuarios') }}" class="btn btn-dark btn-lg">Usuarios</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="display-3 text-primary mb-2"><i class="bi bi-shield-check"></i></div>
+                    <h3 class="h4 mb-1">EZONE</h3>
+                    <p class="text-muted mb-0">Instalación, venta y mantenimiento</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-2">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h5"><i class="bi bi-box-seam me-2"></i>Inventario</h4>
+                    <p class="mb-2">Productos en sistema: <strong>{{ estadisticas.total_productos }}</strong></p>
+                    <p class="mb-3">Valor total: <strong>${{ "%.2f"|format(estadisticas.total_valor) }}</strong></p>
+                    <a href="{{ url_for('inventario_view') }}" class="btn btn-sm btn-primary">Ir a inventario</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h5"><i class="bi bi-people me-2"></i>Clientes</h4>
+                    <p class="mb-3">Clientes registrados: <strong>{{ total_clientes }}</strong></p>
+                    <a href="{{ url_for('clientes') }}" class="btn btn-sm btn-primary">Ir a clientes</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h5"><i class="bi bi-person-badge me-2"></i>Usuarios</h4>
+                    <p class="mb-3">Gestion de cuentas del sistema.</p>
+                    <a href="{{ url_for('usuarios') }}" class="btn btn-sm btn-primary">Ir a usuarios</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

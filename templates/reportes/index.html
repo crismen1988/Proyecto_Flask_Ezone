@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-text"></i> Reportes</h2>
+    <span class="badge bg-dark">Solo administradores</span>
+    </div>
+
+<div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><i class="bi bi-box-seam"></i> Productos</h5>
+                <p class="card-text text-muted">Listado completo del inventario.</p>
+                <a class="btn btn-primary mt-auto" href="{{ url_for('reporte_productos_pdf') }}">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><i class="bi bi-people"></i> Usuarios</h5>
+                <p class="card-text text-muted">Usuarios registrados y roles.</p>
+                <a class="btn btn-primary mt-auto" href="{{ url_for('reporte_usuarios_pdf') }}">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><i class="bi bi-people-fill"></i> Clientes</h5>
+                <p class="card-text text-muted">Listado de clientes con contacto.</p>
+                <a class="btn btn-primary mt-auto" href="{{ url_for('reporte_clientes_pdf') }}">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><i class="bi bi-envelope-check"></i> Solicitudes</h5>
+                <p class="card-text text-muted">Incluye estado de cada solicitud.</p>
+                <a class="btn btn-primary mt-auto" href="{{ url_for('reporte_solicitudes_pdf') }}">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><i class="bi bi-file-earmark-ruled"></i> Facturas</h5>
+                <p class="card-text text-muted">Usa tabla <code>facturas</code> (si falta, usa CSV).</p>
+                <a class="btn btn-primary mt-auto" href="{{ url_for('reporte_facturas_pdf') }}">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

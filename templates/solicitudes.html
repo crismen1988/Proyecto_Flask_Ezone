@@ -1,0 +1,49 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header bg-info text-white">Nueva solicitud</div>
+      <div class="card-body">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.titulo.label(class="form-label") }}
+            {{ form.titulo(class="form-control") }}
+            {% for error in form.titulo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.detalle.label(class="form-label") }}
+            {{ form.detalle(class="form-control") }}
+            {% for error in form.detalle.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="d-grid">{{ form.enviar(class="btn btn-info text-white") }}</div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header">Mis solicitudes</div>
+      <div class="card-body">
+        {% if solicitudes %}
+        <ul class="list-group">
+          {% for s in solicitudes %}
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold">{{ s.titulo }}</div>
+              <small class="text-muted">{{ s.detalle }}</small>
+            </div>
+            <span class="badge bg-secondary">{{ s.estado }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+          <p class="text-muted">Aún no tienes solicitudes.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

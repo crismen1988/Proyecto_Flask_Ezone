@@ -1,0 +1,53 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header bg-primary text-white">Mi Perfil</div>
+      <div class="card-body">
+        <form method="POST">
+          {{ perfil_form.hidden_tag() }}
+          <div class="mb-3">
+            {{ perfil_form.nombre.label(class="form-label") }}
+            {{ perfil_form.nombre(class="form-control") }}
+            {% for error in perfil_form.nombre.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ perfil_form.email.label(class="form-label") }}
+            {{ perfil_form.email(class="form-control") }}
+            {% for error in perfil_form.email.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="d-grid">{{ perfil_form.enviar(class="btn btn-primary") }}</div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header bg-secondary text-white">Cambiar contraseña</div>
+      <div class="card-body">
+        <form method="POST">
+          {{ pwd_form.hidden_tag() }}
+          <div class="mb-3">
+            {{ pwd_form.password_actual.label(class="form-label") }}
+            {{ pwd_form.password_actual(class="form-control", type="password") }}
+            {% for error in pwd_form.password_actual.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ pwd_form.password_nueva.label(class="form-label") }}
+            {{ pwd_form.password_nueva(class="form-control", type="password") }}
+            {% for error in pwd_form.password_nueva.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ pwd_form.password_confirmacion.label(class="form-label") }}
+            {{ pwd_form.password_confirmacion(class="form-control", type="password") }}
+            {% for error in pwd_form.password_confirmacion.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="d-grid">{{ pwd_form.enviar(class="btn btn-secondary") }}</div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
