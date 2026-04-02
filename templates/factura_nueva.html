@@ -14,12 +14,7 @@
         <div class="card-body row g-3">
             <div class="col-md-6">
                 <label class="form-label">RUC/Cédula</label>
-                <input type="text" class="form-control" name="cliente_ruc" id="cliente_ruc" list="clientes_list">
-                <datalist id="clientes_list">
-                    {% for c in clientes %}
-                    <option value="{{ c.ruc }}">{{ c.nombre }}</option>
-                    {% endfor %}
-                </datalist>
+                <input type="text" class="form-control" name="cliente_ruc" id="cliente_ruc" autocomplete="off">
             </div>
             <div class="col-md-6">
                 <label class="form-label">Nombre para la factura</label>
