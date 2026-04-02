@@ -150,15 +150,21 @@
 
     rucInput?.addEventListener('change', (e) => loadCliente(e.target.value.trim()));
     rucInput?.addEventListener('blur', (e) => loadCliente(e.target.value.trim()));
+    rucInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            loadCliente(e.target.value.trim());
+            document.querySelector('#cliente_nombre_manual')?.focus();
+        }
+    });
 
     // Evitar enviar el formulario con Enter mientras se completan datos
     const form = document.querySelector('#factura-form');
     form.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const type = (e.target.type || '').toLowerCase();
-            if (type !== 'submit' && type !== 'button') {
-                e.preventDefault();
-            }
+            // Permitimos Enter solo en botones submit; en otros casos evitamos enviar
+            if (type !== 'submit' && type !== 'button') e.preventDefault();
         }
     });
 })();
