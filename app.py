@@ -994,6 +994,7 @@ def factura_nueva():
         for c in clientes
     ]
     productos = producto_service.listar()
+    error_productos = False
 
     if request.method == "POST":
         cliente_ruc_input = (request.form.get("cliente_ruc") or "").strip()
@@ -1041,12 +1042,13 @@ def factura_nueva():
             lineas.append({"producto": prod, "cantidad": cant_int, "precio": prod.precio})
 
         if not lineas:
-            flash("Agrega al menos un producto con cantidad válida.", "danger")
+            error_productos = True
             return render_template(
                 "factura_nueva.html",
                 clientes=clientes,
                 clientes_json=json.dumps(clientes_json),
                 productos=productos,
+                error_productos=error_productos,
             )
 
         subtotal = sum(l["precio"] * l["cantidad"] for l in lineas)
@@ -1083,6 +1085,7 @@ def factura_nueva():
         clientes=clientes,
         clientes_json=json.dumps(clientes_json),
         productos=productos,
+        error_productos=error_productos,
     )
 
 @app.route("/facturas/<int:factura_id>")
