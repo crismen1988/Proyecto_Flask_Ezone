@@ -1203,10 +1203,8 @@ def _format_num_factura(consecutivo: int) -> str:
 
 def _siguiente_numero_factura() -> str:
     with SessionLocal() as session:
-        from sqlalchemy import func
-
-        total = session.execute(select(func.count(Factura.id))).scalar() or 0
-        return _format_num_factura(total + 1)
+        total = session.execute(select(func.count()).select_from(Factura)).scalar_one()
+        return _format_num_factura((total or 0) + 1)
 
 
 def _renumerar_facturas():
